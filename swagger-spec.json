@@ -1,13 +1,27 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Topamun API",
+    "title": "توثيق API منصة توبامين التعليمية",
     "version": "1.0.0",
-    "description": "API documentation for the Topamun learning platform."
+    "description": "\n        <div style=\"text-align: center; padding: 20px; background: linear-gradient(135deg, #4A90E2, #7BB3F0); color: white; border-radius: 12px; margin: 20px 0;\">\n          <h2 style=\"margin: 0 0 10px 0;\">🎓 منصة توبامين التعليمية</h2>\n          <p style=\"margin: 0; font-size: 16px; opacity: 0.9;\">دليل شامل ومتكامل لجميع واجهات برمجة التطبيقات</p>\n        </div>\n        \n        <div style=\"background: #E8F4FD; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4A90E2;\">\n          <h3 style=\"color: #2C5AA0; margin: 0 0 15px 0;\">📋 نظرة عامة على النظام</h3>\n          <p>منصة توبامين هي منصة تعليمية شاملة تدعم ثلاثة أنواع من المستخدمين:</p>\n          <ul style=\"margin: 10px 0; padding-right: 20px;\">\n            <li><strong>الطلاب (Students):</strong> يمكنهم التسجيل وتحديد المرحلة الدراسية والمحافظة</li>\n            <li><strong>المعلمين (Instructors):</strong> يحتاجون لرفع وثائق التأهيل وانتظار الموافقة من الإدارة</li>\n            <li><strong>المديرين (Admins):</strong> يديرون النظام ويوافقون على طلبات المعلمين</li>\n          </ul>\n        </div>\n\n        <div style=\"background: #FFF3CD; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #F59E0B;\">\n          <h3 style=\"color: #D97706; margin: 0 0 15px 0;\">🔐 آلية التوثيق</h3>\n          <p>يستخدم النظام JWT (JSON Web Tokens) للتوثيق مع الخصائص التالية:</p>\n          <ul style=\"margin: 10px 0; padding-right: 20px;\">\n            <li>مدة صلاحية الرمز: 7 أيام</li>\n            <li>يجب إرسال الرمز في header: <code>Authorization: Bearer YOUR_TOKEN</code></li>\n            <li>يتم إنشاء الرمز عند تسجيل الدخول بنجاح</li>\n            <li>يتم إلغاء جميع الرموز عند إعادة تعيين كلمة المرور</li>\n          </ul>\n        </div>\n\n        <div style=\"background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10B981;\">\n          <h3 style=\"color: #059669; margin: 0 0 15px 0;\">🚀 البدء السريع</h3>\n          <p>لبدء استخدام API، اتبع هذه الخطوات:</p>\n          <ol style=\"margin: 10px 0; padding-right: 20px;\">\n            <li>قم بتسجيل حساب جديد باستخدام <code>POST /auth/signup</code></li>\n            <li>تحقق من بريدك الإلكتروني واضغط على رابط التفعيل</li>\n            <li>سجل دخولك باستخدام <code>POST /auth/login</code></li>\n            <li>استخدم الرمز المُرجع في جميع الطلبات المحمية</li>\n          </ol>\n        </div>\n\n        <div style=\"background: #FEE2E2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #EF4444;\">\n          <h3 style=\"color: #DC2626; margin: 0 0 15px 0;\">⚠️ ملاحظات مهمة</h3>\n          <ul style=\"margin: 10px 0; padding-right: 20px;\">\n            <li>جميع الطلبات يجب أن تكون بصيغة JSON ما عدا رفع الملفات</li>\n            <li>المعلمون يحتاجون لرفع وثيقة تأهيل (PDF أو صورة) عند التسجيل</li>\n            <li>يجب تفعيل البريد الإلكتروني قبل تسجيل الدخول</li>\n            <li>المعلمون يحتاجون موافقة الإدارة قبل تسجيل الدخول</li>\n          </ul>\n        </div>\n      ",
+    "contact": {
+      "name": "فريق تطوير توبامين",
+      "email": "support@topamun.com",
+      "url": "https://topamun.com"
+    },
+    "license": {
+      "name": "MIT License",
+      "url": "https://opensource.org/licenses/MIT"
+    }
   },
   "servers": [
     {
-      "url": "https://topamun-backend.vercel.app/api/v1"
+      "url": "https://topamun-backend.vercel.app/api/v1",
+      "description": "خادم الإنتاج"
+    },
+    {
+      "url": "http://localhost:3000/api/v1",
+      "description": "خادم التطوير المحلي"
     }
   ],
   "components": {
@@ -15,49 +29,74 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT"
+        "bearerFormat": "JWT",
+        "description": "أدخل الرمز المميز الذي حصلت عليه من تسجيل الدخول"
       }
     },
     "schemas": {
       "User": {
         "type": "object",
+        "description": "معلومات المستخدم الأساسية",
         "properties": {
           "firstName": {
             "type": "string",
-            "description": "User's first name"
+            "description": "الاسم الأول",
+            "example": "أحمد"
           },
           "lastName": {
             "type": "string",
-            "description": "User's last name"
+            "description": "الاسم الأخير",
+            "example": "محمد"
           },
           "email": {
             "type": "string",
             "format": "email",
-            "description": "User's email"
+            "description": "البريد الإلكتروني",
+            "example": "ahmed.mohamed@example.com"
           },
           "role": {
             "type": "string",
             "enum": [
               "user",
-              "instructor"
+              "instructor",
+              "admin"
             ],
-            "description": "The role of the user"
+            "description": "دور المستخدم في النظام:\n- `user`: طالب\n- `instructor`: معلم\n- `admin`: مدير\n",
+            "example": "user"
           },
           "governorate": {
             "type": "string",
-            "description": "The governorate of the user"
+            "description": "المحافظة",
+            "example": "القاهرة"
           },
           "gradeLevel": {
             "type": "string",
-            "description": "The grade level of the student (required for students)"
+            "description": "المرحلة الدراسية (للطلاب فقط)",
+            "example": "المرحلة الثانوية"
           },
           "subject": {
             "type": "string",
-            "description": "The subject taught by the instructor (required for instructors)"
+            "description": "المادة التي يدرسها (للمعلمين فقط)",
+            "example": "الرياضيات"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "description": "حالة الحساب (للمعلمين):\n- `pending`: في انتظار الموافقة\n- `approved`: تم الموافقة\n- `rejected`: تم الرفض\n",
+            "example": "approved"
+          },
+          "isConfirmed": {
+            "type": "boolean",
+            "description": "هل تم تفعيل البريد الإلكتروني",
+            "example": true
           }
         }
       },
-      "SignUp": {
+      "SignUpRequest": {
         "type": "object",
         "required": [
           "firstName",
@@ -70,52 +109,72 @@
         ],
         "properties": {
           "firstName": {
-            "type": "string"
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "الاسم الأول (2-20 حرف)",
+            "example": "أحمد"
           },
           "lastName": {
-            "type": "string"
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "الاسم الأخير (2-20 حرف)",
+            "example": "محمد"
           },
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "description": "البريد الإلكتروني (يجب أن يكون صحيحاً وغير مستخدم)",
+            "example": "ahmed.mohamed@example.com"
           },
           "password": {
             "type": "string",
-            "format": "password"
+            "description": "كلمة المرور (يُنصح بأن تكون قوية)",
+            "example": "SecurePassword123!"
           },
           "confirmPassword": {
             "type": "string",
-            "format": "password"
+            "description": "تأكيد كلمة المرور (يجب أن تطابق كلمة المرور)",
+            "example": "SecurePassword123!"
           },
           "phone": {
-            "type": "string"
+            "type": "string",
+            "description": "رقم الهاتف (اختياري)",
+            "example": "01234567890"
           },
           "role": {
             "type": "string",
             "enum": [
               "user",
               "instructor"
-            ]
+            ],
+            "description": "نوع الحساب:\n- `user`: طالب (يحتاج تحديد المرحلة الدراسية)\n- `instructor`: معلم (يحتاج رفع وثيقة + تحديد المادة)\n",
+            "example": "user"
           },
           "governorate": {
-            "type": "string"
+            "type": "string",
+            "description": "المحافظة (مطلوب للجميع)",
+            "example": "القاهرة"
           },
           "gradeLevel": {
             "type": "string",
-            "description": "Required if role is 'user'"
+            "description": "المرحلة الدراسية - **مطلوب للطلاب فقط**\n\nالخيارات المتاحة:\n- المرحلة الابتدائية\n- المرحلة الإعدادية  \n- المرحلة الثانوية\n",
+            "example": "المرحلة الثانوية"
           },
           "subject": {
             "type": "string",
-            "description": "Required if role is 'instructor'"
+            "description": "المادة التي يدرسها - **مطلوب للمعلمين فقط**\n\nأمثلة: الرياضيات، الفيزياء، الكيمياء، الأحياء، اللغة العربية، اللغة الإنجليزية\n",
+            "example": "الرياضيات"
           },
           "document": {
             "type": "string",
             "format": "binary",
-            "description": "Required if role is 'instructor'"
+            "description": "وثيقة التأهيل - **مطلوب للمعلمين فقط**\n\n- الأنواع المقبولة: PDF, JPG, PNG, JPEG\n- الحد الأقصى للحجم: 5MB\n- يجب أن تكون وثيقة رسمية تثبت التأهيل التعليمي\n"
           }
         }
       },
-      "Login": {
+      "LoginRequest": {
         "type": "object",
         "required": [
           "email",
@@ -124,15 +183,18 @@
         "properties": {
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "description": "البريد الإلكتروني المسجل",
+            "example": "ahmed.mohamed@example.com"
           },
           "password": {
             "type": "string",
-            "format": "password"
+            "description": "كلمة المرور",
+            "example": "SecurePassword123!"
           }
         }
       },
-      "ForgotPassword": {
+      "ForgotPasswordRequest": {
         "type": "object",
         "required": [
           "email"
@@ -140,11 +202,13 @@
         "properties": {
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "description": "البريد الإلكتروني المسجل لإرسال رمز إعادة التعيين",
+            "example": "ahmed.mohamed@example.com"
           }
         }
       },
-      "ResetPassword": {
+      "ResetPasswordRequest": {
         "type": "object",
         "required": [
           "email",
@@ -155,58 +219,531 @@
         "properties": {
           "email": {
             "type": "string",
-            "format": "email"
+            "format": "email",
+            "description": "البريد الإلكتروني",
+            "example": "ahmed.mohamed@example.com"
           },
           "forgetCode": {
             "type": "string",
-            "description": "5-digit code sent to email"
+            "minLength": 5,
+            "maxLength": 5,
+            "description": "الرمز المكون من 5 أرقام المُرسل للبريد الإلكتروني",
+            "example": "12345"
           },
           "password": {
             "type": "string",
-            "format": "password"
+            "description": "كلمة المرور الجديدة",
+            "example": "NewSecurePassword123!"
           },
           "confirmPassword": {
             "type": "string",
-            "format": "password"
+            "description": "تأكيد كلمة المرور الجديدة",
+            "example": "NewSecurePassword123!"
+          }
+        }
+      },
+      "UserProfile": {
+        "type": "object",
+        "description": "معلومات الملف الشخصي للمستخدم",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "معرف المستخدم الفريد",
+            "example": "65f16b12345678901234567890abcdef"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "الاسم الأول",
+            "example": "أحمد"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "الاسم الأخير",
+            "example": "محمد"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "البريد الإلكتروني",
+            "example": "ahmed.mohamed@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "description": "رقم الهاتف",
+            "example": "01234567890"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "instructor",
+              "admin"
+            ],
+            "description": "دور المستخدم في النظام:\n- `user`: طالب\n- `instructor`: معلم\n- `admin`: مدير\n",
+            "example": "user"
+          },
+          "governorate": {
+            "type": "string",
+            "description": "المحافظة",
+            "example": "القاهرة"
+          },
+          "gradeLevel": {
+            "type": "string",
+            "description": "المرحلة الدراسية (للطلاب فقط)",
+            "example": "المرحلة الثانوية"
+          },
+          "subject": {
+            "type": "string",
+            "description": "المادة التي يدرسها (للمعلمين فقط)",
+            "example": "الرياضيات"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected"
+            ],
+            "description": "حالة الحساب (للمعلمين فقط):\n- `pending`: في انتظار الموافقة\n- `approved`: تم الموافقة\n- `rejected`: تم الرفض\n",
+            "example": "approved"
+          },
+          "isConfirmed": {
+            "type": "boolean",
+            "description": "هل تم تفعيل البريد الإلكتروني",
+            "example": true
+          },
+          "isLoggedIn": {
+            "type": "boolean",
+            "description": "هل المستخدم مسجل دخول حالياً",
+            "example": true
+          },
+          "provider": {
+            "type": "string",
+            "description": "طريقة إنشاء الحساب",
+            "example": "system"
+          },
+          "document": {
+            "type": "object",
+            "description": "وثيقة التأهيل (للمعلمين فقط)",
+            "properties": {
+              "secure_url": {
+                "type": "string",
+                "description": "رابط الوثيقة المحمي",
+                "example": "https://res.cloudinary.com/topamun/image/upload/v1234567890/topamun/documents/fatma_zahra/document.pdf"
+              },
+              "public_id": {
+                "type": "string",
+                "description": "معرف الوثيقة في Cloudinary",
+                "example": "topamun/documents/fatma_zahra/document"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "تاريخ إنشاء الحساب",
+            "example": "2024-03-15T10:30:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "تاريخ آخر تحديث",
+            "example": "2024-03-15T10:30:00.000Z"
           }
         }
       }
     },
     "responses": {
-      "Success": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "default": true
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      },
-      "Error": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "default": false
-          },
-          "message": {
-            "type": "string"
+      "SignUpSuccess": {
+        "description": "تم التسجيل بنجاح",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "message": {
+                  "type": "string",
+                  "example": "تم التسجيل بنجاح. يرجى فحص بريدك الإلكتروني لتفعيل الحساب"
+                }
+              }
+            },
+            "examples": {
+              "student-signup": {
+                "summary": "تسجيل طالب بنجاح",
+                "value": {
+                  "success": true,
+                  "message": "تم التسجيل بنجاح. يرجى فحص بريدك الإلكتروني لتفعيل الحساب"
+                }
+              },
+              "instructor-signup": {
+                "summary": "تسجيل معلم بنجاح",
+                "value": {
+                  "success": true,
+                  "message": "تم التسجيل بنجاح. يرجى فحص بريدك الإلكتروني لتفعيل الحساب. سيتم مراجعة طلبك من قبل الإدارة"
+                }
+              }
+            }
           }
         }
       },
       "LoginSuccess": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "default": true
-          },
-          "token": {
-            "type": "string"
+        "description": "تم تسجيل الدخول بنجاح",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "token": {
+                  "type": "string",
+                  "description": "الرمز المميز JWT صالح لمدة 7 أيام",
+                  "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+              }
+            },
+            "examples": {
+              "successful-login": {
+                "summary": "تسجيل دخول ناجح",
+                "value": {
+                  "success": true,
+                  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZjE2YjEyMzQ1Njc4OTBhYmNkZWYxMiIsImVtYWlsIjoiYWhtZWQubW9oYW1lZEBleGFtcGxlLmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzEwMzQ1NjAwLCJleHAiOjE3MTA5NTA0MDB9.example_signature"
+                }
+              }
+            }
           }
+        }
+      },
+      "PasswordResetSuccess": {
+        "description": "تم إرسال رمز إعادة تعيين كلمة المرور",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "message": {
+                  "type": "string",
+                  "example": "تم إرسال رمز إعادة تعيين كلمة المرور إلى بريدك الإلكتروني"
+                }
+              }
+            }
+          }
+        }
+      },
+      "GenericSuccess": {
+        "description": "عملية ناجحة",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "message": {
+                  "type": "string",
+                  "example": "تمت العملية بنجاح"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "خطأ في التحقق من صحة البيانات",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "خطأ في التحقق من صحة البيانات"
+                },
+                "errors": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "field": {
+                        "type": "string",
+                        "example": "email"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "يجب أن يكون البريد الإلكتروني صحيحاً"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "ConflictError": {
+        "description": "تضارب في البيانات (مثل البريد الإلكتروني مستخدم)",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "البريد الإلكتروني مستخدم بالفعل"
+                }
+              }
+            }
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "description": "غير مصرح - الرمز المميز مطلوب أو غير صحيح",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "الرمز المميز مطلوب أو غير صحيح"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ForbiddenError": {
+        "description": "ممنوع - لا تملك الصلاحية للوصول",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "لا تملك الصلاحية للوصول لهذا المورد"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFoundError": {
+        "description": "غير موجود - المورد المطلوب غير موجود",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "المورد المطلوب غير موجود"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "خطأ في الخادم",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": false
+                },
+                "message": {
+                  "type": "string",
+                  "example": "حدث خطأ في الخادم، يرجى المحاولة لاحقاً"
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserProfileSuccess": {
+        "description": "تم الحصول على الملف الشخصي بنجاح",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "user": {
+                  "$ref": "#/components/schemas/UserProfile"
+                }
+              }
+            },
+            "examples": {
+              "student-profile": {
+                "summary": "ملف شخصي لطالب",
+                "description": "مثال على ملف شخصي لطالب في المرحلة الثانوية",
+                "value": {
+                  "success": true,
+                  "user": {
+                    "_id": "65f16b12345678901234567890abcdef",
+                    "firstName": "أحمد",
+                    "lastName": "محمد",
+                    "email": "ahmed.mohamed@example.com",
+                    "phone": "01234567890",
+                    "role": "user",
+                    "governorate": "القاهرة",
+                    "gradeLevel": "المرحلة الثانوية",
+                    "status": "approved",
+                    "isConfirmed": true,
+                    "isLoggedIn": true,
+                    "provider": "system",
+                    "createdAt": "2024-03-15T10:30:00.000Z",
+                    "updatedAt": "2024-03-15T10:30:00.000Z"
+                  }
+                }
+              },
+              "instructor-profile": {
+                "summary": "ملف شخصي لمعلم",
+                "description": "مثال على ملف شخصي لمعلم معتمد",
+                "value": {
+                  "success": true,
+                  "user": {
+                    "_id": "65f16b12345678901234567890abcdef",
+                    "firstName": "فاطمة",
+                    "lastName": "زهراء",
+                    "email": "fatma.zahra@example.com",
+                    "phone": "01234567891",
+                    "role": "instructor",
+                    "governorate": "الجيزة",
+                    "subject": "الرياضيات",
+                    "status": "approved",
+                    "isConfirmed": true,
+                    "isLoggedIn": true,
+                    "provider": "system",
+                    "document": {
+                      "secure_url": "https://res.cloudinary.com/topamun/image/upload/v1234567890/topamun/documents/fatma_zahra/document.pdf",
+                      "public_id": "topamun/documents/fatma_zahra/document"
+                    },
+                    "createdAt": "2024-03-15T10:30:00.000Z",
+                    "updatedAt": "2024-03-15T10:30:00.000Z"
+                  }
+                }
+              },
+              "admin-profile": {
+                "summary": "ملف شخصي لمدير",
+                "description": "مثال على ملف شخصي لمدير النظام",
+                "value": {
+                  "success": true,
+                  "user": {
+                    "_id": "65f16b12345678901234567890abcdef",
+                    "firstName": "محمد",
+                    "lastName": "أحمد",
+                    "email": "admin@topamun.com",
+                    "phone": "01234567892",
+                    "role": "admin",
+                    "governorate": "القاهرة",
+                    "status": "approved",
+                    "isConfirmed": true,
+                    "isLoggedIn": true,
+                    "provider": "system",
+                    "createdAt": "2024-03-15T10:30:00.000Z",
+                    "updatedAt": "2024-03-15T10:30:00.000Z"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "examples": {
+      "StudentSignup": {
+        "summary": "تسجيل طالب جديد",
+        "description": "مثال على تسجيل طالب في المرحلة الثانوية من محافظة القاهرة",
+        "value": {
+          "firstName": "أحمد",
+          "lastName": "محمد",
+          "email": "ahmed.mohamed@example.com",
+          "password": "SecurePassword123!",
+          "confirmPassword": "SecurePassword123!",
+          "phone": "01234567890",
+          "role": "user",
+          "governorate": "القاهرة",
+          "gradeLevel": "المرحلة الثانوية"
+        }
+      },
+      "InstructorSignup": {
+        "summary": "تسجيل معلم جديد",
+        "description": "مثال على تسجيل معلم رياضيات (يتطلب رفع وثيقة)",
+        "value": {
+          "firstName": "فاطمة",
+          "lastName": "زهراء",
+          "email": "fatma.zahra@example.com",
+          "password": "SecurePassword123!",
+          "confirmPassword": "SecurePassword123!",
+          "phone": "01234567891",
+          "role": "instructor",
+          "governorate": "الجيزة",
+          "subject": "الرياضيات"
+        }
+      },
+      "LoginExample": {
+        "summary": "تسجيل دخول مستخدم",
+        "description": "مثال على تسجيل الدخول بالبريد الإلكتروني وكلمة المرور",
+        "value": {
+          "email": "ahmed.mohamed@example.com",
+          "password": "SecurePassword123!"
+        }
+      },
+      "ForgotPasswordExample": {
+        "summary": "طلب إعادة تعيين كلمة المرور",
+        "description": "إرسال رمز إعادة التعيين للبريد الإلكتروني",
+        "value": {
+          "email": "ahmed.mohamed@example.com"
+        }
+      },
+      "ResetPasswordExample": {
+        "summary": "إعادة تعيين كلمة المرور",
+        "description": "استخدام الرمز المُرسل لإعادة تعيين كلمة المرور",
+        "value": {
+          "email": "ahmed.mohamed@example.com",
+          "forgetCode": "12345",
+          "password": "NewSecurePassword123!",
+          "confirmPassword": "NewSecurePassword123!"
         }
       }
     }
@@ -216,10 +753,25 @@
       "bearerAuth": []
     }
   ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "عمليات التوثيق والأمان - تسجيل الدخول والخروج وإدارة كلمات المرور",
+      "externalDocs": {
+        "description": "المزيد عن نظام التوثيق",
+        "url": "https://topamun.com/docs/auth"
+      }
+    },
+    {
+      "name": "User",
+      "description": "## 👤 إدارة المستخدمين\n\nيوفر هذا القسم العمليات المتعلقة بإدارة ملفات المستخدمين الشخصية:\n\n### 📋 العمليات المتاحة:\n- **عرض الملف الشخصي**: الحصول على معلومات المستخدم الحالي\n- **تحديث الملف الشخصي**: تعديل البيانات الشخصية (قريباً)\n- **حذف الحساب**: إلغاء الحساب نهائياً (قريباً)\n\n### 🔐 التوثيق المطلوب:\nجميع endpoints في هذا القسم تتطلب رمز التوثيق (JWT Token)\n\n### 💡 ملاحظة:\nيجب تسجيل الدخول أولاً للوصول لهذه العمليات\n"
+    }
+  ],
   "paths": {
     "/auth/signup": {
       "post": {
-        "summary": "Register a new user (student or instructor)",
+        "summary": "تسجيل حساب جديد",
+        "description": "## 📝 تسجيل حساب جديد في منصة توبامين\n\n### 🎯 الغرض:\nيسمح للمستخدمين الجدد بإنشاء حساب في المنصة سواء كانوا طلاباً أو معلمين\n\n### 📋 متطلبات التسجيل:\n\n#### للطلاب (`role: \"user\"`):\n- ✅ البيانات الأساسية (الاسم، البريد، كلمة المرور)\n- ✅ تحديد المحافظة\n- ✅ تحديد المرحلة الدراسية\n- ❌ لا يحتاجون رفع وثائق\n\n#### للمعلمين (`role: \"instructor\"`):\n- ✅ البيانات الأساسية (الاسم، البريد، كلمة المرور)\n- ✅ تحديد المحافظة\n- ✅ تحديد المادة التي يدرسونها\n- ✅ رفع وثيقة التأهيل (PDF أو صورة)\n- ⏳ يحتاجون موافقة الإدارة قبل تسجيل الدخول\n\n### 🔄 سير العمل:\n1. **إرسال البيانات** → 2. **التحقق من صحة البيانات** → 3. **إنشاء الحساب** → 4. **إرسال بريد التفعيل**\n\n### 💡 نصائح للتطوير:\n- استخدم `multipart/form-data` لرفع الملفات\n- تحقق من نوع المستخدم لإظهار الحقول المناسبة\n- أضف تحقق من قوة كلمة المرور في الواجهة\n- أظهر رسالة واضحة للمعلمين بأنهم يحتاجون موافقة الإدارة\n",
         "tags": [
           "Auth"
         ],
@@ -228,36 +780,38 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/SignUp"
+                "$ref": "#/components/schemas/SignUpRequest"
               },
               "examples": {
-                "student": {
-                  "summary": "Student registration example",
+                "student-registration": {
+                  "summary": "👨‍🎓 تسجيل طالب جديد",
+                  "description": "مثال على تسجيل طالب في المرحلة الثانوية",
                   "value": {
-                    "firstName": "Sami",
-                    "lastName": "Ali",
-                    "email": "sami.ali@example.com",
-                    "password": "password123",
-                    "confirmPassword": "password123",
+                    "firstName": "أحمد",
+                    "lastName": "محمد",
+                    "email": "ahmed.mohamed@example.com",
+                    "password": "SecurePassword123!",
+                    "confirmPassword": "SecurePassword123!",
                     "phone": "01234567890",
                     "role": "user",
-                    "governorate": "Cairo",
-                    "gradeLevel": "Secondary Stage"
+                    "governorate": "القاهرة",
+                    "gradeLevel": "المرحلة الثانوية"
                   }
                 },
-                "instructor": {
-                  "summary": "Instructor registration example",
+                "instructor-registration": {
+                  "summary": "👨‍🏫 تسجيل معلم جديد",
+                  "description": "مثال على تسجيل معلم رياضيات (يتطلب رفع وثيقة)",
                   "value": {
-                    "firstName": "Fatma",
-                    "lastName": "Zahra",
+                    "firstName": "فاطمة",
+                    "lastName": "زهراء",
                     "email": "fatma.zahra@example.com",
-                    "password": "password123",
-                    "confirmPassword": "password123",
-                    "phone": "01234567890",
+                    "password": "SecurePassword123!",
+                    "confirmPassword": "SecurePassword123!",
+                    "phone": "01234567891",
                     "role": "instructor",
-                    "governorate": "Giza",
-                    "subject": "Math",
-                    "document": "(file)"
+                    "governorate": "الجيزة",
+                    "subject": "الرياضيات",
+                    "document": "(ملف PDF أو صورة)"
                   }
                 }
               }
@@ -266,41 +820,24 @@
         },
         "responses": {
           "201": {
-            "description": "Registration successful, please check email for confirmation.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/responses/Success"
-                }
-              }
-            }
+            "$ref": "#/components/responses/SignUpSuccess"
           },
           "400": {
-            "description": "Bad request (e.g., validation error, missing document for instructor)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/responses/Error"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ValidationError"
           },
           "409": {
-            "description": "Email already registered",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/responses/Error"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
           }
         }
       }
     },
     "/auth/confirm-email/{token}": {
       "get": {
-        "summary": "Confirm user's email address",
+        "summary": "تفعيل البريد الإلكتروني",
+        "description": "## ✅ تفعيل البريد الإلكتروني\n\n### 🎯 الغرض:\nتفعيل حساب المستخدم عبر الرابط المُرسل في البريد الإلكتروني\n\n### 🔄 كيفية الاستخدام:\n1. المستخدم يسجل حساباً جديداً\n2. يتم إرسال بريد إلكتروني يحتوي على رابط التفعيل\n3. المستخدم يضغط على الرابط\n4. يتم تفعيل الحساب تلقائياً\n\n### 💡 ملاحظات للتطوير:\n- الرابط صالح لمدة ساعة واحدة فقط\n- يمكن استخدام هذا الرابط مرة واحدة فقط\n- بعد التفعيل، يمكن للمستخدم تسجيل الدخول\n- للمعلمين: التفعيل لا يعني الموافقة على الحساب\n\n### 🌐 استخدام في الواجهة:\n- يمكن عرض صفحة تأكيد بعد التفعيل\n- أضف رابط لتسجيل الدخول بعد التفعيل\n- أظهر رسالة خطأ واضحة إذا كان الرابط منتهي الصلاحية\n",
         "tags": [
           "Auth"
         ],
@@ -308,29 +845,42 @@
           {
             "in": "path",
             "name": "token",
+            "required": true,
             "schema": {
               "type": "string"
             },
-            "required": true,
-            "description": "The JWT confirmation token sent to the user's email"
+            "description": "رمز JWT للتفعيل المُرسل في البريد الإلكتروني\n\n**مثال على الرابط الكامل:**\n`https://topamun-backend.vercel.app/api/v1/auth/confirm-email/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`\n",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZjE2YjEyMzQ1Njc4OTBhYmNkZWYxMiIsImlhdCI6MTcxMDM0NTYwMCwiZXhwIjoxNzEwMzQ5MjAwfQ.example_signature"
           }
         ],
         "responses": {
           "200": {
-            "description": "Account activated successfully"
+            "description": "تم تفعيل الحساب بنجاح",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string",
+                  "example": "تم تفعيل حسابك بنجاح. يمكنك الآن تسجيل الدخول."
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid token"
+            "$ref": "#/components/responses/ValidationError"
           },
           "404": {
-            "description": "User not found"
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
           }
         }
       }
     },
     "/auth/login": {
       "post": {
-        "summary": "Log in a user",
+        "summary": "تسجيل الدخول",
+        "description": "## 🔐 تسجيل الدخول إلى المنصة\n\n### 🎯 الغرض:\nتسجيل دخول المستخدمين والحصول على الرمز المميز (JWT) للوصول للموارد المحمية\n\n### 📋 متطلبات تسجيل الدخول:\n- ✅ البريد الإلكتروني وكلمة المرور صحيحان\n- ✅ تم تفعيل البريد الإلكتروني\n- ✅ للمعلمين: تم الموافقة على الحساب من قبل الإدارة\n\n### 🔄 سير العمل:\n1. **إرسال البيانات** → 2. **التحقق من الصحة** → 3. **التحقق من التفعيل** → 4. **إنشاء الرمز المميز**\n\n### 🎫 معلومات الرمز المميز:\n- **النوع**: JWT (JSON Web Token)\n- **المدة**: 7 أيام\n- **الاستخدام**: `Authorization: Bearer YOUR_TOKEN`\n- **المحتوى**: معرف المستخدم، البريد الإلكتروني، الدور\n\n### 💡 نصائح للتطوير:\n- احفظ الرمز في localStorage أو secure cookie\n- أضف الرمز لجميع الطلبات المحمية\n- تحقق من انتهاء صلاحية الرمز\n- أظهر رسائل خطأ واضحة للمعلمين غير المعتمدين\n\n### 🚨 حالات الخطأ الشائعة:\n- **401**: بيانات اعتماد خاطئة\n- **403**: البريد غير مفعل أو المعلم غير معتمد\n",
         "tags": [
           "Auth"
         ],
@@ -339,13 +889,31 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Login"
+                "$ref": "#/components/schemas/LoginRequest"
               },
               "examples": {
-                "login-example": {
+                "student-login": {
+                  "summary": "👨‍🎓 تسجيل دخول طالب",
+                  "description": "مثال على تسجيل دخول طالب",
                   "value": {
-                    "email": "sami.ali@example.com",
-                    "password": "password123"
+                    "email": "ahmed.mohamed@example.com",
+                    "password": "SecurePassword123!"
+                  }
+                },
+                "instructor-login": {
+                  "summary": "👨‍🏫 تسجيل دخول معلم",
+                  "description": "مثال على تسجيل دخول معلم معتمد",
+                  "value": {
+                    "email": "fatma.zahra@example.com",
+                    "password": "SecurePassword123!"
+                  }
+                },
+                "admin-login": {
+                  "summary": "👨‍💼 تسجيل دخول مدير",
+                  "description": "مثال على تسجيل دخول مدير النظام",
+                  "value": {
+                    "email": "admin@topamun.com",
+                    "password": "AdminPassword123!"
                   }
                 }
               }
@@ -354,41 +922,24 @@
         },
         "responses": {
           "200": {
-            "description": "Login successful",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/responses/LoginSuccess"
-                }
-              }
-            }
+            "$ref": "#/components/responses/LoginSuccess"
           },
           "401": {
-            "description": "Invalid credentials",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/responses/Error"
-                }
-              }
-            }
+            "$ref": "#/components/responses/UnauthorizedError"
           },
           "403": {
-            "description": "Email not confirmed or instructor account not approved",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/responses/Error"
-                }
-              }
-            }
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
           }
         }
       }
     },
     "/auth/forgot-password": {
       "patch": {
-        "summary": "Send a password reset code to the user's email",
+        "summary": "طلب إعادة تعيين كلمة المرور",
+        "description": "## 🔄 طلب إعادة تعيين كلمة المرور\n\n### 🎯 الغرض:\nإرسال رمز إعادة تعيين كلمة المرور إلى البريد الإلكتروني للمستخدم\n\n### 🔄 سير العمل:\n1. **إدخال البريد الإلكتروني** → 2. **التحقق من وجود المستخدم** → 3. **إنشاء رمز عشوائي** → 4. **إرسال البريد الإلكتروني**\n\n### 📧 معلومات الرمز:\n- **النوع**: رمز رقمي مكون من 5 أرقام\n- **المدة**: صالح حتى استخدامه أو تغيير كلمة المرور\n- **الاستخدام**: مرة واحدة فقط\n- **التوصيل**: عبر البريد الإلكتروني\n\n### 💡 نصائح للتطوير:\n- أضف واجهة لإدخال البريد الإلكتروني\n- أظهر رسالة تأكيد بإرسال الرمز\n- وجه المستخدم لصفحة إدخال الرمز\n- أضف إمكانية إعادة الإرسال بعد فترة زمنية\n\n### 🔒 الأمان:\n- لا يتم الكشف عن وجود البريد الإلكتروني من عدمه\n- الرمز عشوائي وغير قابل للتخمين\n- يتم إلغاء الرمز بعد الاستخدام\n",
         "tags": [
           "Auth"
         ],
@@ -397,12 +948,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ForgotPassword"
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
               },
               "examples": {
-                "forgot-pass-example": {
+                "forgot-password-request": {
+                  "summary": "📧 طلب إعادة تعيين كلمة المرور",
+                  "description": "إرسال رمز إعادة التعيين للبريد الإلكتروني",
                   "value": {
-                    "email": "sami.ali@example.com"
+                    "email": "ahmed.mohamed@example.com"
                   }
                 }
               }
@@ -411,31 +964,21 @@
         },
         "responses": {
           "200": {
-            "description": "Password reset code sent",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/responses/Success"
-                }
-              }
-            }
+            "$ref": "#/components/responses/PasswordResetSuccess"
           },
           "404": {
-            "description": "User not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/responses/Error"
-                }
-              }
-            }
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
           }
         }
       }
     },
     "/auth/reset-password": {
       "patch": {
-        "summary": "Reset user's password with the code from email",
+        "summary": "إعادة تعيين كلمة المرور",
+        "description": "## 🔑 إعادة تعيين كلمة المرور\n\n### 🎯 الغرض:\nتعيين كلمة مرور جديدة باستخدام الرمز المُرسل في البريد الإلكتروني\n\n### 📋 متطلبات إعادة التعيين:\n- ✅ البريد الإلكتروني صحيح\n- ✅ رمز إعادة التعيين صحيح (5 أرقام)\n- ✅ كلمة المرور الجديدة وتأكيدها متطابقتان\n- ✅ الرمز لم يُستخدم من قبل\n\n### 🔄 سير العمل:\n1. **إدخال البيانات** → 2. **التحقق من الرمز** → 3. **تشفير كلمة المرور** → 4. **إلغاء جميع الرموز المميزة**\n\n### 🔒 الأمان:\n- يتم تشفير كلمة المرور الجديدة\n- يتم إلغاء جميع الرموز المميزة الموجودة\n- يتم حذف رمز إعادة التعيين\n- يحتاج المستخدم لتسجيل الدخول مرة أخرى\n\n### 💡 نصائح للتطوير:\n- أضف تحقق من قوة كلمة المرور\n- أظهر رسالة تأكيد بنجاح العملية\n- وجه المستخدم لصفحة تسجيل الدخول\n- أضف إمكانية إخفاء/إظهار كلمة المرور\n\n### ⚠️ تحذيرات:\n- بعد إعادة التعيين، جميع الأجهزة الأخرى ستحتاج لتسجيل الدخول مرة أخرى\n- الرمز يُستخدم مرة واحدة فقط\n",
         "tags": [
           "Auth"
         ],
@@ -444,15 +987,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ResetPassword"
+                "$ref": "#/components/schemas/ResetPasswordRequest"
               },
               "examples": {
-                "reset-pass-example": {
+                "reset-password-request": {
+                  "summary": "🔑 إعادة تعيين كلمة المرور",
+                  "description": "استخدام الرمز لتعيين كلمة مرور جديدة",
                   "value": {
-                    "email": "sami.ali@example.com",
+                    "email": "ahmed.mohamed@example.com",
                     "forgetCode": "12345",
-                    "password": "newPassword456",
-                    "confirmPassword": "newPassword456"
+                    "password": "NewSecurePassword123!",
+                    "confirmPassword": "NewSecurePassword123!"
                   }
                 }
               }
@@ -461,21 +1006,114 @@
         },
         "responses": {
           "200": {
-            "description": "Password reset successfully",
+            "$ref": "#/components/responses/GenericSuccess"
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/users/profile": {
+      "get": {
+        "summary": "الحصول على الملف الشخصي",
+        "description": "## 👤 عرض الملف الشخصي للمستخدم الحالي\n\n### 🎯 الغرض:\nالحصول على جميع معلومات المستخدم الشخصية بناءً على الرمز المميز المُرسل\n\n### 🔐 التوثيق المطلوب:\n- يجب إرسال رمز التوثيق في header: `Authorization: Bearer YOUR_TOKEN`\n- الرمز يجب أن يكون صالحاً وغير منتهي الصلاحية\n- يجب أن يكون المستخدم مسجل دخول\n\n### 📋 البيانات المُرجعة:\nيتم إرجاع جميع معلومات المستخدم باستثناء:\n- كلمة المرور (مشفرة ومخفية)\n- رمز إعادة تعيين كلمة المرور\n- البيانات الحساسة الأخرى\n\n### 🎭 البيانات حسب نوع المستخدم:\n\n#### للطلاب (`role: \"user\"`):\n- البيانات الأساسية + المحافظة + المرحلة الدراسية\n- لا يوجد وثائق أو مواد تدريسية\n\n#### للمعلمين (`role: \"instructor\"`):\n- البيانات الأساسية + المحافظة + المادة التدريسية\n- وثيقة التأهيل (إذا كانت موجودة)\n- حالة الموافقة من الإدارة\n\n#### للمديرين (`role: \"admin\"`):\n- البيانات الأساسية + المحافظة\n- صلاحيات إدارية (في endpoints أخرى)\n\n### 💡 نصائح للتطوير:\n- استخدم هذا endpoint لعرض معلومات المستخدم في الواجهة\n- احفظ البيانات محلياً لتجنب الطلبات المتكررة\n- تحقق من `isLoggedIn` للتأكد من حالة تسجيل الدخول\n- للمعلمين: تحقق من `status` لمعرفة حالة الموافقة\n\n### 🔄 حالات الاستخدام:\n- عرض الملف الشخصي في لوحة التحكم\n- ملء النماذج مسبقاً ببيانات المستخدم\n- التحقق من صلاحيات المستخدم\n- عرض معلومات المستخدم في التطبيق\n",
+        "tags": [
+          "User"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/UserProfileSuccess"
+          },
+          "401": {
+            "description": "غير مصرح - الرمز المميز مطلوب أو غير صحيح",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/responses/Success"
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "missing-token": {
+                    "summary": "الرمز المميز مفقود",
+                    "value": {
+                      "success": false,
+                      "message": "الرمز المميز مطلوب"
+                    }
+                  },
+                  "invalid-token": {
+                    "summary": "الرمز المميز غير صحيح",
+                    "value": {
+                      "success": false,
+                      "message": "الرمز المميز غير صحيح"
+                    }
+                  },
+                  "expired-token": {
+                    "summary": "الرمز المميز منتهي الصلاحية",
+                    "value": {
+                      "success": false,
+                      "message": "الرمز المميز منتهي الصلاحية أو غير صالح"
+                    }
+                  }
                 }
               }
             }
           },
-          "400": {
-            "description": "Invalid code or email",
+          "404": {
+            "description": "المستخدم غير موجود",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/responses/Error"
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "المستخدم غير موجود"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "خطأ في الخادم",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "حدث خطأ في الخادم، يرجى المحاولة لاحقاً"
+                    }
+                  }
                 }
               }
             }
@@ -483,11 +1121,5 @@
         }
       }
     }
-  },
-  "tags": [
-    {
-      "name": "Auth",
-      "description": "Authentication endpoints"
-    }
-  ]
+  }
 }
