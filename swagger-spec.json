@@ -1,0 +1,493 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Topamun API",
+    "version": "1.0.0",
+    "description": "API documentation for the Topamun learning platform."
+  },
+  "servers": [
+    {
+      "url": "https://topamun-backend.vercel.app/api/v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "description": "User's first name"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "User's last name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "User's email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "instructor"
+            ],
+            "description": "The role of the user"
+          },
+          "governorate": {
+            "type": "string",
+            "description": "The governorate of the user"
+          },
+          "gradeLevel": {
+            "type": "string",
+            "description": "The grade level of the student (required for students)"
+          },
+          "subject": {
+            "type": "string",
+            "description": "The subject taught by the instructor (required for instructors)"
+          }
+        }
+      },
+      "SignUp": {
+        "type": "object",
+        "required": [
+          "firstName",
+          "lastName",
+          "email",
+          "password",
+          "confirmPassword",
+          "role",
+          "governorate"
+        ],
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "format": "password"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "instructor"
+            ]
+          },
+          "governorate": {
+            "type": "string"
+          },
+          "gradeLevel": {
+            "type": "string",
+            "description": "Required if role is 'user'"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Required if role is 'instructor'"
+          },
+          "document": {
+            "type": "string",
+            "format": "binary",
+            "description": "Required if role is 'instructor'"
+          }
+        }
+      },
+      "Login": {
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          }
+        }
+      },
+      "ForgotPassword": {
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      },
+      "ResetPassword": {
+        "type": "object",
+        "required": [
+          "email",
+          "forgetCode",
+          "password",
+          "confirmPassword"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "forgetCode": {
+            "type": "string",
+            "description": "5-digit code sent to email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "format": "password"
+          }
+        }
+      }
+    },
+    "responses": {
+      "Success": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": false
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginSuccess": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "default": true
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/auth/signup": {
+      "post": {
+        "summary": "Register a new user (student or instructor)",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/SignUp"
+              },
+              "examples": {
+                "student": {
+                  "summary": "Student registration example",
+                  "value": {
+                    "firstName": "Sami",
+                    "lastName": "Ali",
+                    "email": "sami.ali@example.com",
+                    "password": "password123",
+                    "confirmPassword": "password123",
+                    "phone": "01234567890",
+                    "role": "user",
+                    "governorate": "Cairo",
+                    "gradeLevel": "Secondary Stage"
+                  }
+                },
+                "instructor": {
+                  "summary": "Instructor registration example",
+                  "value": {
+                    "firstName": "Fatma",
+                    "lastName": "Zahra",
+                    "email": "fatma.zahra@example.com",
+                    "password": "password123",
+                    "confirmPassword": "password123",
+                    "phone": "01234567890",
+                    "role": "instructor",
+                    "governorate": "Giza",
+                    "subject": "Math",
+                    "document": "(file)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registration successful, please check email for confirmation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/Success"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request (e.g., validation error, missing document for instructor)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already registered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/confirm-email/{token}": {
+      "get": {
+        "summary": "Confirm user's email address",
+        "tags": [
+          "Auth"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The JWT confirmation token sent to the user's email"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account activated successfully"
+          },
+          "400": {
+            "description": "Invalid token"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Log in a user",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              },
+              "examples": {
+                "login-example": {
+                  "value": {
+                    "email": "sami.ali@example.com",
+                    "password": "password123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/LoginSuccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Email not confirmed or instructor account not approved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "patch": {
+        "summary": "Send a password reset code to the user's email",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPassword"
+              },
+              "examples": {
+                "forgot-pass-example": {
+                  "value": {
+                    "email": "sami.ali@example.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset code sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/Success"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "patch": {
+        "summary": "Reset user's password with the code from email",
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPassword"
+              },
+              "examples": {
+                "reset-pass-example": {
+                  "value": {
+                    "email": "sami.ali@example.com",
+                    "forgetCode": "12345",
+                    "password": "newPassword456",
+                    "confirmPassword": "newPassword456"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/Success"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid code or email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/responses/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication endpoints"
+    }
+  ]
+}
