@@ -11,8 +11,9 @@ const port = process.env.PORT;
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+app.get("/", (req, res) => res.send("Hello World!"));
+
 connectDB();
 bootstrap(app, express);
 
-app.get("/", (req, res) => res.send("Hello World!"));
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
