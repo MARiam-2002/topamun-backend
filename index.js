@@ -11,7 +11,9 @@ import { globalErrorHandling } from "./src/utils/error-handling.js";
 const swaggerSpec = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), './swagger-spec.json'), 'utf8'));
 
 const app = express();
-const port = process.env.PORT;
+
+// Connect to DB on cold start
+connectDB();
 
 // Setup API routes
 bootstrap(app, express);
@@ -27,6 +29,4 @@ app.all("*", (req, res, next) => {
 // Global error handler
 app.use(globalErrorHandling);
 
-connectDB();
-
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+export default app;
