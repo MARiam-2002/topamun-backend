@@ -1,18 +1,33 @@
 import "./config/env.config.js";
 import express from "express";
 import { bootstrap } from "./src/index.router.js";
-import { connectDB } from "./DB/connection.js";
+import { initializeDatabase } from "./DB/connection.js";
 import fs from 'fs';
 import path from 'path';
-import { AppError } from "./src/utils/error.class.js";
-import { globalErrorHandling } from "./src/utils/error-handling.js";
+import { 
+  globalErrorHandling, 
+  handleNotFound,
+  handleUncaughtException,
+  handleUnhandledRejection,
+  handleSIGTERM
+} from "./src/utils/error-handling.js";
 
-const swaggerSpec = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), './swagger-spec.json'), 'utf8'));
+// Handle uncaught exceptions
+handleUncaughtException();
 
 const app = express();
 
-// Connect to DB on cold start
-connectDB();
+// Load swagger specification
+let swaggerSpec;
+try {
+  swaggerSpec = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), './swagger-spec.json'), 'utf8'));
+} catch (error) {
+  console.error('❌ Error loading swagger specification:', error.message);
+  swaggerSpec = { info: { title: 'API Documentation', version: '1.0.0' } };
+}
+
+// Initialize database connection
+await initializeDatabase();
 
 // Serve swagger spec as JSON
 app.get('/api-docs.json', (req, res) => {
@@ -551,15 +566,51 @@ app.get('/api-docs', (req, res) => {
   res.send(html);
 });
 
+// Health check endpoint
+app.get('/health', async (req, res) => {
+  try {
+    const { healthCheck } = await import('./DB/connection.js');
+    const dbHealth = await healthCheck();
+    
+    res.status(200).json({
+      success: true,
+      message: 'Server is running',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: dbHealth,
+      environment: process.env.NODE_ENV || 'development'
+    });
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      message: 'Service unavailable',
+      timestamp: new Date().toISOString(),
+      error: error.message
+    });
+  }
+});
+
 // Setup API routes
 bootstrap(app, express);
 
-// 404 handler for unmatched routes
-app.all("*", (req, res, next) => {
-  return next(new AppError(`Page not found: ${req.originalUrl}`, 404));
-});
+// Handle 404 errors for unmatched routes
+app.all("*", handleNotFound);
 
 // Global error handler
 app.use(globalErrorHandling);
+
+// Start server
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
+  console.log(`🔍 Health Check: http://localhost:${PORT}/health`);
+});
+
+// Handle unhandled promise rejections
+handleUnhandledRejection(server);
+
+// Handle SIGTERM
+handleSIGTERM(server);
 
 export default app;

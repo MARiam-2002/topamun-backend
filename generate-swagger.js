@@ -9,11 +9,6 @@ const options = {
       title: 'توثيق API منصة توبامين التعليمية',
       version: '1.0.0',
       description: `
-        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #4A90E2, #7BB3F0); color: white; border-radius: 12px; margin: 20px 0;">
-          <h2 style="margin: 0 0 10px 0;">🎓 منصة توبامين التعليمية</h2>
-          <p style="margin: 0; font-size: 16px; opacity: 0.9;">دليل شامل ومتكامل لجميع واجهات برمجة التطبيقات</p>
-        </div>
-        
         <div style="background: #E8F4FD; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4A90E2;">
           <h3 style="color: #2C5AA0; margin: 0 0 15px 0;">📋 نظرة عامة على النظام</h3>
           <p>منصة توبامين هي منصة تعليمية شاملة تدعم ثلاثة أنواع من المستخدمين:</p>

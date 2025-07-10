@@ -1,176 +1,394 @@
 import userModel from "../../../../DB/models/user.model.js";
-import { asyncHandler } from "../../../utils/asyncHandler.js";
-import bcryptjs from "bcryptjs";
+import tokenModel from "../../../../DB/models/token.model.js";
 import jwt from "jsonwebtoken";
+import randomstring from "randomstring";
+import cloudinary from "../../../utils/cloud.js";
 import { sendEmail } from "../../../utils/sendEmails.js";
 import { resetPassword as resetPasswordTemplate, signupTemp } from "../../../utils/generateHtml.js";
-import tokenModel from "../../../../DB/models/token.model.js";
-import randomstring from "randomstring";
-import { systemRoles } from "../../../utils/system-roles.js";
-import cloudinary from "../../../utils/cloud.js";
-import { AppError } from "../../../utils/error.class.js";
+import { 
+  APP_CONFIG, 
+  SYSTEM_ROLES, 
+  USER_STATUS, 
+  SUCCESS_MESSAGES, 
+  ERROR_MESSAGES,
+  HTTP_STATUS
+} from "../../../config/constants.js";
+import { 
+  catchAsync,
+  AppError,
+  AuthenticationError,
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+  FileUploadError
+} from "../../../utils/error.class.js";
+import { sendSuccess } from "../../../utils/error-handling.js";
 
-// Helper function for token generation and saving
-const generateAndSaveToken = async (res, user, agent) => {
-    const token = jwt.sign(
-        { id: user._id, email: user.email, role: user.role },
-        process.env.TOKEN_KEY,
-        { expiresIn: "7d" }
-    );
-
-    await tokenModel.create({
-        token,
-        user: user._id,
-        agent,
-    });
-
-    user.isLoggedIn = true;
-    await user.save();
-
-    return res.status(200).json({ success: true, token });
+/**
+ * Helper function to generate JWT token
+ */
+const generateJWTToken = (payload, secret = APP_CONFIG.JWT.SECRET, expiresIn = APP_CONFIG.JWT.EXPIRES_IN) => {
+  return jwt.sign(payload, secret, { expiresIn });
 };
 
-export const signUp = asyncHandler(async (req, res, next) => {
-    const { firstName, lastName, email, password, role, phone, governorate, gradeLevel, subject } = req.body;
+/**
+ * Helper function to create and save authentication token
+ */
+const createAuthToken = async (user, req) => {
+  const tokenPayload = {
+    id: user._id,
+    email: user.email,
+    role: user.role
+  };
 
-    const isUser = await userModel.findOne({ email });
-    if (isUser) {
-        return next(new AppError("Email already registered!", 409));
-    }
+  const token = generateJWTToken(tokenPayload);
+  
+  // Extract device and location information
+  const userAgent = req.headers['user-agent'] || 'Unknown';
+  const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
+  
+  // Create token record
+  await tokenModel.create({
+    token,
+    user: user._id,
+    agent: userAgent,
+    ipAddress,
+    tokenType: 'access',
+    deviceInfo: userAgent
+  });
 
-    if (role === systemRoles.INSTRUCTOR && !req.file) {
-        return next(new AppError("Instructor document is required.", 400));
-    }
+  // Update user login status
+  user.isLoggedIn = true;
+  user.lastLogin = new Date();
+  user.lastActivity = new Date();
+  
+  // Reset login attempts on successful login
+  await user.resetLoginAttempts();
+  await user.save();
 
-    const userObject = {
-        firstName,
-        lastName,
-        email,
-        password,
-        role,
-        phone,
-        governorate,
+  return token;
+};
+
+/**
+ * Helper function to upload instructor document
+ */
+const uploadInstructorDocument = async (file, user) => {
+  try {
+    const folderPath = `${APP_CONFIG.UPLOAD.CLOUDINARY_FOLDER}/documents/${user.firstName}_${user.lastName}`;
+    const result = await cloudinary.uploader.upload(file.path, {
+      folder: folderPath,
+      resource_type: 'auto',
+      format: 'pdf'
+    });
+    
+    return {
+      secure_url: result.secure_url,
+      public_id: result.public_id
     };
+  } catch (error) {
+    throw new FileUploadError(ERROR_MESSAGES.UPLOAD_FAILED);
+  }
+};
 
-    if (role === systemRoles.USER) {
-        userObject.gradeLevel = gradeLevel;
-    }
-
-    if (role === systemRoles.INSTRUCTOR) {
-        userObject.subject = subject;
-        const { secure_url, public_id } = await cloudinary.uploader.upload(req.file.path, {
-            folder: `topamun/documents/${userObject.firstName}_${userObject.lastName}`
-        });
-        userObject.document = { secure_url, public_id };
-        userObject.status = 'pending';
-    }
-
-    const user = await userModel.create(userObject);
-
-    const confirmationToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET_CONFIRMATION, { expiresIn: '1h' });
+/**
+ * Helper function to send confirmation email
+ */
+const sendConfirmationEmail = async (user, req) => {
+  try {
+    const confirmationToken = generateJWTToken(
+      { id: user._id }, 
+      APP_CONFIG.JWT.CONFIRMATION_SECRET, 
+      APP_CONFIG.JWT.CONFIRMATION_EXPIRES_IN
+    );
+    
     const confirmationLink = `${req.protocol}://${req.headers.host}/api/v1/auth/confirm-email/${confirmationToken}`;
-
-    const isSent = await sendEmail({
-        to: email,
-        subject: "Activate Account",
-        html: signupTemp(confirmationLink),
+    
+    const emailSent = await sendEmail({
+      to: user.email,
+      subject: APP_CONFIG.EMAIL.CONFIRMATION_SUBJECT,
+      html: signupTemp(confirmationLink),
     });
 
-    if (!isSent) {
-        return next(new AppError("Something went wrong with sending email!", 500));
+    if (!emailSent) {
+      throw new AppError(ERROR_MESSAGES.INTERNAL_ERROR, HTTP_STATUS.INTERNAL_SERVER_ERROR);
     }
+  } catch (error) {
+    throw new AppError(ERROR_MESSAGES.INTERNAL_ERROR, HTTP_STATUS.INTERNAL_SERVER_ERROR);
+  }
+};
 
-    return res.status(201).json({ success: true, message: "Registration successful. Please check your email to activate your account." });
+/**
+ * User Registration
+ */
+export const signUp = catchAsync(async (req, res, next) => {
+  const { firstName, lastName, email, password, role, phone, governorate, gradeLevel, subject } = req.body;
+
+  // Check if user already exists
+  const existingUser = await userModel.findOne({ email });
+  if (existingUser) {
+    return next(new ConflictError(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS));
+  }
+
+  // Validate instructor document requirement
+  if (role === SYSTEM_ROLES.INSTRUCTOR && !req.file) {
+    return next(new ValidationError(ERROR_MESSAGES.FILE_REQUIRED));
+  }
+
+  // Prepare user data
+  const userData = {
+    firstName,
+    lastName,
+    email,
+    password,
+    role,
+    phone,
+    governorate,
+  };
+
+  // Add role-specific fields
+  if (role === SYSTEM_ROLES.USER) {
+    userData.gradeLevel = gradeLevel;
+  }
+
+  if (role === SYSTEM_ROLES.INSTRUCTOR) {
+    userData.subject = subject;
+    userData.status = USER_STATUS.PENDING;
+  }
+
+  // Create user
+  const user = await userModel.create(userData);
+
+  // Upload instructor document if provided
+  if (role === SYSTEM_ROLES.INSTRUCTOR && req.file) {
+    const document = await uploadInstructorDocument(req.file, user);
+    user.document = document;
+    await user.save();
+  }
+
+  // Send confirmation email
+  await sendConfirmationEmail(user, req);
+
+  // Send success response
+  sendSuccess(res, null, SUCCESS_MESSAGES.REGISTRATION_SUCCESS, HTTP_STATUS.CREATED);
 });
 
-export const confirmEmail = asyncHandler(async (req, res, next) => {
-    const { token } = req.params;
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_CONFIRMATION);
+/**
+ * Email Confirmation
+ */
+export const confirmEmail = catchAsync(async (req, res, next) => {
+  const { token } = req.params;
 
+  try {
+    const decoded = jwt.verify(token, APP_CONFIG.JWT.CONFIRMATION_SECRET);
+    
     if (!decoded?.id) {
-        return next(new AppError("Invalid token", 400));
+      return next(new AuthenticationError(ERROR_MESSAGES.TOKEN_INVALID));
     }
 
     const user = await userModel.findByIdAndUpdate(
-        decoded.id,
-        { isConfirmed: true },
-        { new: true }
+      decoded.id,
+      { isConfirmed: true },
+      { new: true }
     );
 
     if (!user) {
-        return next(new AppError("User not found", 404));
+      return next(new NotFoundError(ERROR_MESSAGES.USER_NOT_FOUND));
     }
 
-    return res.status(200).send("Account activated successfully. You can now log in.");
+    // Send HTML response for email confirmation
+    res.status(HTTP_STATUS.OK).send(`
+      <html>
+        <head>
+          <title>تفعيل الحساب</title>
+          <meta charset="UTF-8">
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+            .success { color: #10B981; font-size: 24px; margin-bottom: 20px; }
+            .message { color: #374151; font-size: 16px; }
+          </style>
+        </head>
+        <body>
+          <div class="success">✅ تم تفعيل حسابك بنجاح</div>
+          <div class="message">يمكنك الآن تسجيل الدخول والاستفادة من خدمات منصة توبامين</div>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    return next(new AuthenticationError(ERROR_MESSAGES.TOKEN_INVALID));
+  }
 });
 
-export const login = asyncHandler(async (req, res, next) => {
-    const { email, password } = req.body;
-    const user = await userModel.findOne({ email });
+/**
+ * User Login
+ */
+export const login = catchAsync(async (req, res, next) => {
+  const { email, password } = req.body;
 
-    if (!user) {
-        return next(new AppError("Invalid credentials", 401));
-    }
+  // Find user with password field
+  const user = await userModel.findOne({ email }).select('+password +loginAttempts +lockUntil');
 
-    if (!user.isConfirmed) {
-        return next(new AppError("Please confirm your email first.", 403));
-    }
+  if (!user) {
+    return next(new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS));
+  }
 
-    if (user.role === systemRoles.INSTRUCTOR && user.status !== 'approved') {
-        const statusMessage = user.status === 'pending' ? 'Your account is pending approval.' : 'Your account was rejected.';
-        return next(new AppError(statusMessage, 403));
-    }
+  // Check if account is locked
+  if (user.isLocked) {
+    return next(new AuthenticationError(ERROR_MESSAGES.ACCOUNT_SUSPENDED));
+  }
 
-    const match = bcryptjs.compareSync(password, user.password);
-    if (!match) {
-        return next(new AppError("Invalid credentials", 401));
-    }
+  // Check if email is confirmed
+  if (!user.isConfirmed) {
+    return next(new AuthenticationError(ERROR_MESSAGES.EMAIL_NOT_CONFIRMED));
+  }
 
-    return generateAndSaveToken(res, user, req.headers["user-agent"]);
+  // Check instructor approval status
+  if (user.role === SYSTEM_ROLES.INSTRUCTOR && user.status !== USER_STATUS.APPROVED) {
+    const statusMessage = user.status === USER_STATUS.PENDING 
+      ? ERROR_MESSAGES.INSTRUCTOR_PENDING 
+      : ERROR_MESSAGES.INSTRUCTOR_REJECTED;
+    return next(new AuthenticationError(statusMessage));
+  }
+
+  // Verify password
+  const isPasswordValid = await user.comparePassword(password);
+  if (!isPasswordValid) {
+    // Increment login attempts
+    await user.incLoginAttempts();
+    return next(new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS));
+  }
+
+  // Generate authentication token
+  const token = await createAuthToken(user, req);
+
+  // Send success response
+  sendSuccess(res, { token }, SUCCESS_MESSAGES.LOGIN_SUCCESS, HTTP_STATUS.OK);
 });
 
-export const forgotPassword = asyncHandler(async (req, res, next) => {
-    const { email } = req.body;
-    const user = await userModel.findOne({ email });
+/**
+ * Forgot Password
+ */
+export const forgotPassword = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
 
-    if (!user) {
-        return next(new AppError("User not found.", 404));
-    }
+  const user = await userModel.findOne({ email });
+  if (!user) {
+    return next(new NotFoundError(ERROR_MESSAGES.USER_NOT_FOUND));
+  }
 
-    const code = randomstring.generate({
-        length: 5,
-        charset: "numeric",
+  // Generate reset code
+  const resetCode = randomstring.generate({
+    length: 5,
+    charset: "numeric",
+  });
+
+  // Save reset code
+  user.forgetCode = resetCode;
+  await user.save();
+
+  // Send reset email
+  try {
+    const emailSent = await sendEmail({
+      to: user.email,
+      subject: APP_CONFIG.EMAIL.RESET_PASSWORD_SUBJECT,
+      html: resetPasswordTemplate(resetCode),
     });
 
-    user.forgetCode = code;
-    await user.save();
-
-    const isSent = await sendEmail({
-        to: user.email,
-        subject: "Password Reset Code",
-        html: resetPasswordTemplate(code),
-    });
-
-    if (!isSent) {
-        return next(new AppError("Failed to send email.", 500));
+    if (!emailSent) {
+      throw new Error('Failed to send email');
     }
 
-    return res.status(200).json({ success: true, message: "Password reset code sent to your email." });
-});
-
-export const resetPassword = asyncHandler(async (req, res, next) => {
-    const { email, forgetCode, password } = req.body;
-
-    const user = await userModel.findOne({ email, forgetCode });
-    if (!user) {
-        return next(new AppError("Invalid code or email.", 400));
-    }
-
-    user.password = password;
+    sendSuccess(res, null, SUCCESS_MESSAGES.PASSWORD_RESET_SENT, HTTP_STATUS.OK);
+  } catch (error) {
+    // Remove reset code if email fails
     user.forgetCode = undefined;
     await user.save();
-
-    await tokenModel.updateMany({ user: user._id }, { isValid: false });
-
-    return res.status(200).json({ success: true, message: "Password reset successfully. Please log in." });
+    
+    return next(new AppError(ERROR_MESSAGES.INTERNAL_ERROR, HTTP_STATUS.INTERNAL_SERVER_ERROR));
+  }
 });
+
+/**
+ * Reset Password
+ */
+export const resetPassword = catchAsync(async (req, res, next) => {
+  const { email, forgetCode, password } = req.body;
+
+  // Find user with reset code
+  const user = await userModel.findOne({ email, forgetCode }).select('+forgetCode');
+  if (!user) {
+    return next(new ValidationError('رمز إعادة التعيين غير صحيح أو منتهي الصلاحية'));
+  }
+
+  // Update password and clear reset code
+  user.password = password;
+  user.forgetCode = undefined;
+  await user.save();
+
+  // Invalidate all existing tokens
+  await tokenModel.invalidateAllForUser(user._id);
+
+  sendSuccess(res, null, SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS, HTTP_STATUS.OK);
+});
+
+/**
+ * Logout (invalidate current token)
+ */
+export const logout = catchAsync(async (req, res, next) => {
+  const token = req.headers.authorization?.replace(APP_CONFIG.JWT.BEARER_PREFIX, '');
+  
+  if (token) {
+    // Invalidate the current token
+    await tokenModel.updateOne({ token }, { isValid: false });
+  }
+
+  // Update user login status
+  if (req.user) {
+    req.user.isLoggedIn = false;
+    await req.user.save();
+  }
+
+  sendSuccess(res, null, 'تم تسجيل الخروج بنجاح', HTTP_STATUS.OK);
+});
+
+/**
+ * Logout from all devices
+ */
+export const logoutAll = catchAsync(async (req, res, next) => {
+  // Invalidate all tokens for the user
+  await tokenModel.invalidateAllForUser(req.user._id);
+
+  // Update user login status
+  req.user.isLoggedIn = false;
+  await req.user.save();
+
+  sendSuccess(res, null, 'تم تسجيل الخروج من جميع الأجهزة بنجاح', HTTP_STATUS.OK);
+});
+
+/**
+ * Get current user sessions
+ */
+export const getUserSessions = catchAsync(async (req, res, next) => {
+  const sessions = await tokenModel.findActiveTokensForUser(req.user._id);
+  
+  const sessionData = sessions.map(session => ({
+    id: session._id,
+    device: session.deviceInfo,
+    location: session.location,
+    ipAddress: session.ipAddress,
+    lastUsed: session.lastUsed,
+    createdAt: session.createdAt
+  }));
+
+  sendSuccess(res, { sessions: sessionData }, 'تم الحصول على الجلسات بنجاح', HTTP_STATUS.OK);
+});
+
+export default {
+  signUp,
+  confirmEmail,
+  login,
+  forgotPassword,
+  resetPassword,
+  logout,
+  logoutAll,
+  getUserSessions
+};
