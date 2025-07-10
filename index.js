@@ -15,11 +15,11 @@ const app = express();
 // Connect to DB on cold start
 connectDB();
 
+// Swagger UI - Must be before other routes
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // Setup API routes
 bootstrap(app, express);
-
-// Swagger UI
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 404 handler for unmatched routes
 app.all("*", (req, res, next) => {
