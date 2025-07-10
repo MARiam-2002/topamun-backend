@@ -81,12 +81,16 @@ const options = {
     }],
     tags: [
       {
-        name: 'Auth',
-        description: 'عمليات التوثيق والأمان - تسجيل الدخول والخروج وإدارة كلمات المرور',
+        name: 'Authentication',
+        description: 'عمليات التوثيق والأمان - تسجيل الدخول، الخروج، إدارة الجلسات وكلمات المرور.',
         externalDocs: {
           description: 'المزيد عن نظام التوثيق',
           url: 'https://topamun.com/docs/auth'
         }
+      },
+      {
+        name: 'Users',
+        description: 'عمليات إدارة المستخدمين - عرض وتعديل الملفات الشخصية، إدارة المستخدمين من قبل المشرفين، وعرض الإحصائيات.'
       }
     ]
   },
