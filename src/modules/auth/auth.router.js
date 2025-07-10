@@ -170,19 +170,19 @@ const router = Router();
  *                 firstName: "Sami"
  *                 lastName: "Ali"
  *                 email: "sami.ali@example.com"
- *                 password": "password123"
+ *                 password: "password123"
  *                 confirmPassword: "password123"
  *                 phone: "01234567890"
  *                 role: "user"
- *                 governorate": "Cairo"
- *                 gradeLevel": "Secondary Stage"
+ *                 governorate: "Cairo"
+ *                 gradeLevel: "Secondary Stage"
  *             instructor:
  *               summary: Instructor registration example
  *               value:
  *                 firstName: "Fatma"
  *                 lastName: "Zahra"
- *                 email": "fatma.zahra@example.com"
- *                 password": "password123"
+ *                 email: "fatma.zahra@example.com"
+ *                 password: "password123"
  *                 confirmPassword: "password123"
  *                 phone: "01234567890"
  *                 role: "instructor"
@@ -334,9 +334,9 @@ router.patch(
  *             reset-pass-example:
  *               value:
  *                 email: "sami.ali@example.com"
- *                 forgetCode": "12345"
- *                 password": "newPassword456"
- *                 confirmPassword": "newPassword456"
+ *                 forgetCode: "12345"
+ *                 password: "newPassword456"
+ *                 confirmPassword: "newPassword456"
  *     responses:
  *       200:
  *         description: Password reset successfully
