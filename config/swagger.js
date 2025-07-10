@@ -10,7 +10,7 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000/api/v1', // Update with your actual server URL
+        url: 'https://topamun-backend.vercel.app/api/v1', 
       },
     ],
     components: {
