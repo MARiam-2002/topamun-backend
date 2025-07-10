@@ -51,11 +51,6 @@ const options = {
           </ul>
         </div>
       `,
-      contact: {
-        name: 'فريق تطوير توبامين',
-        email: 'support@topamun.com',
-        url: 'https://topamun.com'
-      },
       license: {
         name: 'MIT License',
         url: 'https://opensource.org/licenses/MIT'
