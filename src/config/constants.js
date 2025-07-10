@@ -2,11 +2,11 @@
 export const APP_CONFIG = {
   // JWT Configuration
   JWT: {
-    SECRET: process.env.TOKEN_KEY || 'topamun_secret_key',
-    CONFIRMATION_SECRET: process.env.JWT_SECRET_CONFIRMATION || 'topamun_confirmation_secret',
+    SECRET: process.env.TOKEN_KEY ,
+    CONFIRMATION_SECRET: process.env.JWT_SECRET_CONFIRMATION ,
     EXPIRES_IN: '7d',
     CONFIRMATION_EXPIRES_IN: '1h',
-    BEARER_PREFIX: process.env.BEARER_KEY || 'Bearer ',
+    BEARER_PREFIX: process.env.BEARER_KEY ,
   },
 
   // Database Configuration
