@@ -3,7 +3,10 @@ import express from "express";
 import { bootstrap } from "./src/index.router.js";
 import { connectDB } from "./DB/connection.js";
 import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './swagger-spec.json' assert { type: "json" };
+import fs from 'fs';
+import path from 'path';
+
+const swaggerSpec = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), './swagger-spec.json'), 'utf8'));
 
 const app = express();
 const port = process.env.PORT;
