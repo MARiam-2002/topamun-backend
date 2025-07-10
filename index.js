@@ -3,7 +3,7 @@ import express from "express";
 import { bootstrap } from "./src/index.router.js";
 import { connectDB } from "./DB/connection.js";
 import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from './config/swagger.js';
+import swaggerSpec from './swagger-spec.json' assert { type: "json" };
 
 const app = express();
 const port = process.env.PORT;
