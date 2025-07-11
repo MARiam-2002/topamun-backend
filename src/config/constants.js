@@ -58,7 +58,7 @@ export const APP_CONFIG = {
     ALLOWED_DOCUMENT_TYPES: ['application/pdf'],
     ALLOWED_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
     CLOUDINARY_FOLDER: 'topamun',
-    TEMP_FOLDER: 'uploads/temp',
+    TEMP_FOLDER: '/tmp/uploads',
   },
 
   // Email Configuration
