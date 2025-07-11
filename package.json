@@ -7,7 +7,9 @@
   "scripts": {
     "start": "cross-env NODE_PATH=./src node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "cross-env NODE_PATH=./src nodemon index.js"
+    "dev": "npm run build:swagger && cross-env NODE_PATH=./src nodemon index.js",
+    "build:swagger": "node generate-swagger.js",
+    "vercel-build": "npm run build:swagger"
   },
   "engines": {
     "node": "18.16.0"

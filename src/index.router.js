@@ -5,7 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
-import { swaggerSpec } from "./utils/swagger.js";
+import swaggerDoc from "../../swagger-output.json" assert { type: "json" };
 dotenv.config();
 
 const swaggerUiOptions = {
@@ -63,7 +63,7 @@ export const bootstrap = (app, express) => {
   app.use(
     "/api-docs",
     swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, swaggerUiOptions)
+    swaggerUi.setup(swaggerDoc, swaggerUiOptions)
   );
 
   app.use("/auth", authRouter);

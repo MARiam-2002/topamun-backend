@@ -1,5 +1,6 @@
 import swaggerJsdoc from "swagger-jsdoc";
 import path from "path";
+import fs from "fs";
 
 const options = {
   definition: {
@@ -9,10 +10,6 @@ const options = {
       version: "1.0.0",
       description:
         "Welcome to the official Topamine API documentation. This document provides a comprehensive overview of all available endpoints for developers to interact with the Topamine platform.",
-      contact: {
-        name: "Topamine Support",
-        email: "support@topamine.com",
-      },
     },
     servers: [
       {
@@ -20,7 +17,7 @@ const options = {
         description: "Development Server",
       },
       {
-        url: "https://topamun-backend.vercel.app/",
+        url: "https://topamun-backend.vercel.app",
         description: "Production Server",
       },
     ],
@@ -39,9 +36,14 @@ const options = {
       },
     ],
   },
-  // To debug the Vercel deployment issue, we are pointing to the exact file path
-  // instead of using a glob pattern. If this works, the issue is with globbing on Vercel.
-  apis: [path.join(process.cwd(), "src", "modules", "auth", "auth.router.js")],
+  apis: [path.join(process.cwd(), "src", "modules", "**", "*.router.js")],
 };
 
-export const swaggerSpec = swaggerJsdoc(options); 
+const swaggerSpec = swaggerJsdoc(options);
+
+fs.writeFileSync(
+  "./swagger-output.json",
+  JSON.stringify(swaggerSpec, null, 2)
+);
+
+console.log("Swagger JSON file generated successfully."); 
