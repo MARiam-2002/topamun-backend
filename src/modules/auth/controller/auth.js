@@ -1,152 +1,206 @@
-// import userModel from "../../../../DB/models/user.model.js";
-// import { asyncHandler } from "../../../utils/asyncHandler.js";
-// import bcryptjs from "bcryptjs";
-// import crypto from "crypto";
-// import jwt from "jsonwebtoken";
-// import { sendEmail } from "../../../utils/sendEmails.js";
-// import { resetPassword, signupTemp } from "../../../utils/generateHtml.js";
-// import tokenModel from "../../../../DB/models/token.model.js";
-// import randomstring from "randomstring";
-// import cartModel from "../../../../DB/models/cart.model.js";
+import userModel from "../../../../DB/models/user.model.js";
+import { asyncHandler } from "../../../utils/asyncHandler.js";
+import bcryptjs from "bcryptjs";
+import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import { sendEmail } from "../../../utils/sendEmails.js";
+import {
+  activationEmail,
+  passwordResetEmail,
+  teacherPendingEmail,
+} from "../../../utils/generateHtml.js";
+import tokenModel from "../../../../DB/models/token.model.js";
+import randomstring from "randomstring";
+import cloudinary from "../../../utils/cloud.js";
 
-// export const register = asyncHandler(async (req, res, next) => {
-//   const { userName, email, password ,role} = req.body;
-//   const isUser = await userModel.findOne({ email });
-//   if (isUser) {
-//     return next(new Error("email already registered !", { cause: 409 }));
-//   }
+export const register = asyncHandler(async (req, res, next) => {
+  const {
+    firstName,
+    lastName,
+    email,
+    password,
+    phone,
+    province,
+    role,
+    academicStage,
+    subject,
+  } = req.body;
 
-//   const hashPassword = bcryptjs.hashSync(
-//     password,
-//     Number(process.env.SALT_ROUND)
-//   );
-//   const activationCode = crypto.randomBytes(64).toString("hex");
+  const isUser = await userModel.findOne({ email });
+  if (isUser) {
+    return next(new Error("email already registered !", { cause: 409 }));
+  }
 
-//   const user = await userModel.create({
-//     userName,
-//     email,
-//     password: hashPassword,
-//     role,
-//     activationCode,
-//   });
+  const hashPassword = bcryptjs.hashSync(
+    password,
+    Number(process.env.SALT_ROUND)
+  );
 
-//   const link = `https://backend-kappa-beige.vercel.app/auth/confirmEmail/${activationCode}`;
+  let user;
+  if (role === "Teacher") {
+    if (!req.file) {
+      return next(new Error("Certificate is required.", { cause: 400 }));
+    }
+    const { secure_url, public_id } = await cloudinary.uploader.upload(
+      req.file.path,
+      { folder: `topamun/teachers/certificates` }
+    );
+    user = await userModel.create({
+      firstName,
+      lastName,
+      email,
+      password: hashPassword,
+      phone,
+      province,
+      role,
+      subject,
+      certificate: { url: secure_url, id: public_id },
+    });
 
-//   const isSent = await sendEmail({
-//     to: email,
-//     subject: "Activate Account",
-//     html: signupTemp(link),
-//   });
-//   return isSent
-//     ? res
-//         .status(200)
-//         .json({ success: true, message: "Please review Your email!" })
-//     : next(new Error("something went wrong!", { cause: 400 }));
-// });
+    const isSent = await sendEmail({
+      to: email,
+      subject: "طلب التسجيل قيد المراجعة",
+      html: teacherPendingEmail(firstName),
+    });
+    return isSent
+      ? res.status(200).json({
+          success: true,
+          message: "Registration successful, please wait for admin approval.",
+        })
+      : next(new Error("something went wrong!", { cause: 400 }));
+  }
 
-// export const activationAccount = asyncHandler(async (req, res, next) => {
-//   const user = await userModel.findOneAndUpdate(
-//     { activationCode: req.params.activationCode },
-//     { isConfirmed: true, $unset: { activationCode: 1 } }
-//   );
+  // Student registration
+  const activationCode = crypto.randomBytes(64).toString("hex");
+  user = await userModel.create({
+    firstName,
+    lastName,
+    email,
+    password: hashPassword,
+    phone,
+    province,
+    role,
+    academicStage,
+    activationCode,
+  });
 
-//   if (!user) {
-//     return next(new Error("User Not Found!", { cause: 404 }));
-//   }
-//   if (user.role == "user") {
-//     await cartModel.create({ user: user._id });
-//   }
-//   return res
-//     .status(200)
-//     .send("Congratulation, Your Account is now activated, try to login");
-// });
+  const link = `${req.protocol}://${req.headers.host}/auth/confirmEmail/${activationCode}`;
 
-// export const login = asyncHandler(async (req, res, next) => {
-//   const { email, password } = req.body;
-//   const user = await userModel.findOne({ email });
+  const isSent = await sendEmail({
+    to: email,
+    subject: "Activate Account",
+    html: activationEmail(firstName, link),
+  });
 
-//   if (!user) {
-//     return next(new Error("Invalid-Email", { cause: 400 }));
-//   }
+  return isSent
+    ? res
+        .status(200)
+        .json({ success: true, message: "Please review Your email!" })
+    : next(new Error("something went wrong!", { cause: 400 }));
+});
 
-//   if (!user.isConfirmed) {
-//     return next(new Error("Un activated Account", { cause: 400 }));
-//   }
+export const activationAccount = asyncHandler(async (req, res, next) => {
+  const user = await userModel.findOneAndUpdate(
+    { activationCode: req.params.activationCode },
+    { isConfirmed: true, $unset: { activationCode: 1 } }
+  );
 
-//   const match = bcryptjs.compareSync(password, user.password);
+  if (!user) {
+    return next(new Error("User Not Found!", { cause: 404 }));
+  }
+  return res
+    .status(200)
+    .send("Congratulation, Your Account is now activated, try to login");
+});
 
-//   if (!match) {
-//     return next(new Error("Invalid-Password", { cause: 400 }));
-//   }
+export const login = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+  const user = await userModel.findOne({ email });
 
-//   const token = jwt.sign(
-//     { id: user._id, email: user.email },
-//     process.env.TOKEN_KEY,
-//     { expiresIn: "2d" }
-//   );
+  if (!user) {
+    return next(new Error("Invalid Credentials", { cause: 400 }));
+  }
 
-//   await tokenModel.create({
-//     token,
-//     user: user._id,
-//     agent: req.headers["user-agent"],
-//   });
+  const match = bcryptjs.compareSync(password, user.password);
 
-//   user.status = "online";
-//   await user.save();
+  if (!match) {
+    return next(new Error("Invalid Credentials", { cause: 400 }));
+  }
 
-//   return res.status(200).json({ success: true, result: token });
-// });
+  if (!user.isConfirmed) {
+    return next(new Error("Un-activated Account, please confirm your email", { cause: 400 }));
+  }
 
-// //send forget Code
+  if (user.role === "Teacher" && !user.isApproved) {
+    return next(
+      new Error("Your account is pending approval from the admin.", {
+        cause: 403,
+      })
+    );
+  }
 
-// export const sendForgetCode = asyncHandler(async (req, res, next) => {
-//   const user = await userModel.findOne({ email: req.body.email });
+  const token = jwt.sign(
+    { id: user._id, email: user.email, role: user.role },
+    process.env.TOKEN_KEY,
+    { expiresIn: "7d" }
+  );
 
-//   if (!user) {
-//     return next(new Error("Invalid email!", { cause: 400 }));
-//   }
+  await tokenModel.create({
+    token,
+    user: user._id,
+    agent: req.headers["user-agent"],
+  });
 
-//   const code = randomstring.generate({
-//     length: 5,
-//     charset: "numeric",
-//   });
+  user.status = "online";
+  await user.save();
 
-//   user.forgetCode = code;
-//   await user.save();
+  return res.status(200).json({ success: true, result: { token } });
+});
 
-//   return (await sendEmail({
-//     to: user.email,
-//     subject: "Reset Password",
-//     html: resetPassword(code),
-//   }))
-//     ? res.status(200).json({ success: true, message: "check you email!" })
-//     : next(new Error("Something went wrong!", { cause: 400 }));
-// });
+//send forget Code
 
-// export const resetPasswordByCode = asyncHandler(async (req, res, next) => {
-//   const newPassword = bcryptjs.hashSync(
-//     req.body.password,
-//     +process.env.SALT_ROUND
-//   );
-//   const checkUser = await userModel.findOne({ email: req.body.email });
-//   if (!checkUser) {
-//     return next(new Error("Invalid email!", { cause: 400 }));
-//   }
-//   if (checkUser.forgetCode !== req.body.forgetCode) {
-//     return next(new Error("Invalid code!", { status: 400 }));
-//   }
-//   const user = await userModel.findOneAndUpdate(
-//     { email: req.body.email },
-//     { password: newPassword, $unset: { forgetCode: 1 } }
-//   );
+export const sendForgetCode = asyncHandler(async (req, res, next) => {
+  const user = await userModel.findOne({ email: req.body.email });
 
-//   //invalidate tokens
-//   const tokens = await tokenModel.find({ user: user._id });
+  if (!user) {
+    return next(new Error("Invalid email!", { cause: 404 }));
+  }
 
-//   tokens.forEach(async (token) => {
-//     token.isValid = false;
-//     await token.save();
-//   });
+  const code = randomstring.generate({
+    length: 5,
+    charset: "numeric",
+  });
 
-//   return res.status(200).json({ success: true, message: "Try to login!" });
-// });
+  user.forgetCode = code;
+  await user.save();
+
+  return (await sendEmail({
+    to: user.email,
+    subject: "إعادة تعيين كلمة المرور",
+    html: passwordResetEmail(user.firstName, code),
+  }))
+    ? res.status(200).json({ success: true, message: "check you email!" })
+    : next(new Error("Something went wrong!", { cause: 400 }));
+});
+
+export const resetPasswordByCode = asyncHandler(async (req, res, next) => {
+  const { email, password, forgetCode } = req.body;
+  
+  const user = await userModel.findOne({ email, forgetCode });
+  if(!user){
+      return next(new Error("Invalid email or code!", { cause: 400 }));
+  }
+
+  const newPassword = bcryptjs.hashSync(password, +process.env.SALT_ROUND);
+  
+  user.password = newPassword;
+  user.forgetCode = undefined; //Remove the forget code
+  await user.save();
+
+
+  //invalidate tokens
+  const tokens = await tokenModel.updateMany({ user: user._id }, {isValid: false});
+
+
+  return res.status(200).json({ success: true, message: "Password updated successfully, Please try to login!" });
+});

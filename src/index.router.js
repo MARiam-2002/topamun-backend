@@ -1,11 +1,30 @@
-// import authRouter from "./modules/auth/auth.router.js";
+import authRouter from "./modules/auth/auth.router.js";
 
 import { globalErrorHandling } from "./utils/asyncHandler.js";
 import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./utils/swagger.js";
 dotenv.config();
 
+const swaggerUiOptions = {
+  customCss: `
+    .swagger-ui .topbar { background-color: #2D65B4; }
+    .swagger-ui .topbar .link { color: #ffffff; }
+    .swagger-ui .topbar .download-url-wrapper .select-label select { color: #ffffff; }
+    .swagger-ui .info .title { color: #1e3a8a; font-family: 'Tajawal', sans-serif; }
+    .swagger-ui .opblock-tag { background-color: #f1f3f5; color: #1e3a8a; border-color: #dee2e6; }
+    .swagger-ui .opblock.opblock-post .opblock-summary-method { background-color: #3B82F6; }
+    .swagger-ui .opblock.opblock-get .opblock-summary-method { background-color: #10B981; }
+    .swagger-ui .opblock.opblock-patch .opblock-summary-method { background-color: #F59E0B; }
+    .swagger-ui .opblock.opblock-delete .opblock-summary-method { background-color: #EF4444; }
+    .swagger-ui .btn.execute { background-color: #3B82F6; border-color: #3B82F6; }
+    .swagger-ui .scheme-container { background-color: #f8f9fa; border: 1px solid #dee2e6; }
+  `,
+  customSiteTitle: "Topamine API Documentation",
+  customfavIcon: "https://your-favicon-url/favicon.ico", // You can add your favicon link here
+};
 
 export const bootstrap = (app, express) => {
   if (process.env.NODE_ENV == "dev") {
@@ -39,9 +58,16 @@ export const bootstrap = (app, express) => {
   // });
   app.use(cors());
   app.use(express.json());
-  
-  // app.use("/auth", authRouter);
- 
+
+  // Serve Swagger documentation
+  app.use(
+    "/api-docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, swaggerUiOptions)
+  );
+
+  app.use("/auth", authRouter);
+
   app.all("*", (req, res, next) => {
     console.log(3);
     return next(new Error("not found page", { cause: 404 }));
