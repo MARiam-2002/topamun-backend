@@ -74,7 +74,7 @@ const router = Router();
  *         - province
  *         - role
  *         - subject
- *         - certificate
+ *         - profileImage
  *       properties:
  *         firstName:
  *           type: string
@@ -99,10 +99,10 @@ const router = Router();
  *         subject:
  *           type: string
  *           description: The teacher's subject.
- *         certificate:
+ *         profileImage:
  *           type: string
  *           format: binary
- *           description: The teacher's certificate file (image or pdf).
+ *           description: The teacher's profile image.
  *
  *     Login:
  *       type: object
@@ -189,7 +189,7 @@ const router = Router();
  *                 province: "Alexandria"
  *                 role: "Teacher"
  *                 subject: "Physics"
- *                 certificate: "(binary file)"
+ *                 profileImage: "(binary file)"
  *     responses:
  *       200:
  *         description: Registration successful. Student receives activation email. Teacher is pending approval.
@@ -200,9 +200,7 @@ const router = Router();
  */
 router.post(
   "/register",
-  fileUpload([...filterObject.image, ...filterObject.pdf]).single(
-    "certificate"
-  ),
+  fileUpload(filterObject.image).single("profileImage"),
   isValidation(Validators.registerSchema),
   userController.register
 );

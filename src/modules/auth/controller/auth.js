@@ -39,11 +39,11 @@ export const register = asyncHandler(async (req, res, next) => {
   let user;
   if (role === "Teacher") {
     if (!req.file) {
-      return next(new Error("Certificate is required.", { cause: 400 }));
+      return next(new Error("Profile image is required.", { cause: 400 }));
     }
     const { secure_url, public_id } = await cloudinary.uploader.upload(
       req.file.path,
-      { folder: `topamun/teachers/certificates` }
+      { folder: `topamun/users/teachers` }
     );
     user = await userModel.create({
       firstName,
@@ -54,7 +54,7 @@ export const register = asyncHandler(async (req, res, next) => {
       province,
       role,
       subject,
-      certificate: { url: secure_url, id: public_id },
+      profileImage: { url: secure_url, id: public_id },
     });
 
     const isSent = await sendEmail({

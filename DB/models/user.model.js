@@ -51,10 +51,6 @@ const userSchema = new Schema(
     subject: {
       type: String,
     },
-    certificate: {
-      url: { type: String },
-      id: { type: String },
-    },
     isApproved: {
       // for teacher
       type: Boolean,
