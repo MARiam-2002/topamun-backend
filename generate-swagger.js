@@ -47,4 +47,4 @@ fs.writeFileSync(
   JSON.stringify(swaggerSpec, null, 2)
 );
 
-console.log("Swagger JSON file generated successfully in src directory."); 
+console.log("Swagger JSON file generated successfully in src folder."); 
