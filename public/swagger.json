@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Topamine API",
-    "description": "API Documentation for the Topamine platform.",
+    "title": "توبامين - واجهة برمجة التطبيق",
+    "description": "توثيق API لمنصة توبامين التعليمية",
     "version": "1.0.0"
   },
   "servers": [
@@ -10,48 +10,59 @@
       "url": "/"
     }
   ],
+  "tags": [
+    {
+      "name": "المصادقة",
+      "description": "عمليات تسجيل الدخول وإدارة الحسابات"
+    }
+  ],
   "paths": {
     "/auth/register": {
       "post": {
-        "tags": ["Authentication"],
-        "summary": "Register a new user (Student or Teacher)",
+        "tags": ["المصادقة"],
+        "summary": "تسجيل مستخدم جديد (طالب أو معلم)",
+        "description": "يمكن للمستخدم التسجيل كطالب أو معلم مع المعلومات المطلوبة لكل دور",
         "requestBody": {
           "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "firstName": {
-                    "type": "string",
-                    "description": "User's first name"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/StudentRegistration"
                   },
-                  "lastName": {
-                    "type": "string",
-                    "description": "User's last name"
-                  },
-                  "email": {
-                    "type": "string",
-                    "format": "email",
-                    "description": "User's email"
-                  },
-                  "password": {
-                    "type": "string",
-                    "format": "password",
-                    "description": "User's password"
-                  },
-                  "phone": {
-                    "type": "string",
-                    "description": "User's phone number"
-                  },
-                  "province": {
-                    "type": "string",
-                    "description": "User's province"
-                  },
-                  "role": {
-                    "type": "string",
-                    "enum": ["Student", "Teacher"],
-                    "description": "User's role"
+                  {
+                    "$ref": "#/components/schemas/TeacherRegistration"
+                  }
+                ]
+              },
+              "examples": {
+                "student": {
+                  "summary": "مثال تسجيل طالب",
+                  "value": {
+                    "firstName": "أحمد",
+                    "lastName": "علي",
+                    "email": "student@example.com",
+                    "password": "Password123!",
+                    "confirmPassword": "Password123!",
+                    "phone": "0501234567",
+                    "province": "الرياض",
+                    "role": "Student",
+                    "academicStage": "ثانوي"
+                  }
+                },
+                "teacher": {
+                  "summary": "مثال تسجيل معلم",
+                  "value": {
+                    "firstName": "محمد",
+                    "lastName": "خالد",
+                    "email": "teacher@example.com",
+                    "password": "Password123!",
+                    "confirmPassword": "Password123!",
+                    "phone": "0507654321",
+                    "province": "جدة",
+                    "role": "Teacher",
+                    "subject": "رياضيات"
                   }
                 }
               }
@@ -60,21 +71,430 @@
         },
         "responses": {
           "200": {
-            "description": "User registered successfully"
+            "description": "تم التسجيل بنجاح",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "student": {
+                    "value": {
+                      "success": true,
+                      "message": "Please review Your email!"
+                    }
+                  },
+                  "teacher": {
+                    "value": {
+                      "success": true,
+                      "message": "Registration successful, please wait for admin approval."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Invalid input"
+            "description": "خطأ في البيانات المدخلة",
+            "content": {
+              "application/json": {
+                "example": {
+                  "msgError": "Certificate is required."
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "البريد الإلكتروني مسجل مسبقاً",
+            "content": {
+              "application/json": {
+                "example": {
+                  "msgError": "email already registered !"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/confirmEmail/{activationCode}": {
+      "get": {
+        "tags": ["المصادقة"],
+        "summary": "تفعيل حساب الطالب",
+        "description": "تفعيل حساب الطالب باستخدام رمز التفعيل المرسل بالبريد",
+        "parameters": [
+          {
+            "name": "activationCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "a1b2c3d4e5f6",
+            "description": "رمز التفعيل المرسل إلى البريد الإلكتروني"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "تم تفعيل الحساب بنجاح",
+            "content": {
+              "text/plain": {
+                "example": "Congratulation, Your Account is now activated, try to login"
+              }
+            }
+          },
+          "404": {
+            "description": "رمز التفعيل غير صالح",
+            "content": {
+              "application/json": {
+                "example": {
+                  "msgError": "User Not Found!"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["المصادقة"],
+        "summary": "تسجيل الدخول",
+        "description": "تسجيل الدخول للمستخدمين المفعلين",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              },
+              "example": {
+                "email": "user@example.com",
+                "password": "Password123!"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "تم تسجيل الدخول بنجاح",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "result": {
+                    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "خطأ في البيانات أو الحساب غير مفعل",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "invalid": {
+                    "value": {
+                      "msgError": "Invalid Credentials"
+                    }
+                  },
+                  "unactivated": {
+                    "value": {
+                      "msgError": "Un-activated Account, please confirm your email"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "حساب المعلم في انتظار الموافقة",
+            "content": {
+              "application/json": {
+                "example": {
+                  "msgError": "Your account is pending approval from the admin."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forgetCode": {
+      "patch": {
+        "tags": ["المصادقة"],
+        "summary": "طلب رمز إعادة تعيين كلمة المرور",
+        "description": "إرسال رمز إعادة تعيين كلمة المرور إلى البريد الإلكتروني",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgetCode"
+              },
+              "example": {
+                "email": "user@example.com"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "تم إرسال الرمز بنجاح",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "message": "check you email!"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "البريد الإلكتروني غير مسجل",
+            "content": {
+              "application/json": {
+                "example": {
+                  "msgError": "Invalid email!"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/resetPassword": {
+      "patch": {
+        "tags": ["المصادقة"],
+        "summary": "إعادة تعيين كلمة المرور",
+        "description": "تغيير كلمة المرور باستخدام الرمز المرسل",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPassword"
+              },
+              "example": {
+                "email": "user@example.com",
+                "forgetCode": "12345",
+                "password": "NewPassword123!",
+                "confirmPassword": "NewPassword123!"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "تم تغيير كلمة المرور بنجاح",
+            "content": {
+              "application/json": {
+                "example": {
+                  "success": true,
+                  "message": "Password updated successfully, Please try to login!"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "خطأ في البيانات المدخلة",
+            "content": {
+              "application/json": {
+                "example": {
+                  "msgError": "Invalid email or code!"
+                }
+              }
+            }
           }
         }
       }
     }
   },
   "components": {
+    "schemas": {
+      "StudentRegistration": {
+        "type": "object",
+        "required": [
+          "firstName",
+          "lastName",
+          "email",
+          "password",
+          "confirmPassword",
+          "phone",
+          "province",
+          "role",
+          "academicStage"
+        ],
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "الاسم الأول"
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "اسم العائلة"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "البريد الإلكتروني"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "كلمة المرور"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "format": "password",
+            "description": "تأكيد كلمة المرور"
+          },
+          "phone": {
+            "type": "string",
+            "description": "رقم الهاتف"
+          },
+          "province": {
+            "type": "string",
+            "description": "المنطقة"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["Student"],
+            "description": "نوع المستخدم"
+          },
+          "academicStage": {
+            "type": "string",
+            "description": "المرحلة الدراسية"
+          }
+        }
+      },
+      "TeacherRegistration": {
+        "type": "object",
+        "required": [
+          "firstName",
+          "lastName",
+          "email",
+          "password",
+          "confirmPassword",
+          "phone",
+          "province",
+          "role",
+          "subject",
+          "certificate"
+        ],
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "الاسم الأول"
+          },
+          "lastName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 20,
+            "description": "اسم العائلة"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "البريد الإلكتروني"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "كلمة المرور"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "format": "password",
+            "description": "تأكيد كلمة المرور"
+          },
+          "phone": {
+            "type": "string",
+            "description": "رقم الهاتف"
+          },
+          "province": {
+            "type": "string",
+            "description": "المنطقة"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["Teacher"],
+            "description": "نوع المستخدم"
+          },
+          "subject": {
+            "type": "string",
+            "description": "المادة الدراسية"
+          },
+          "certificate": {
+            "type": "string",
+            "format": "binary",
+            "description": "شهادة المعلم (صورة أو PDF)"
+          }
+        }
+      },
+      "Login": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "البريد الإلكتروني"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "كلمة المرور"
+          }
+        }
+      },
+      "ForgetCode": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "البريد الإلكتروني"
+          }
+        }
+      },
+      "ResetPassword": {
+        "type": "object",
+        "required": ["email", "forgetCode", "password", "confirmPassword"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "البريد الإلكتروني"
+          },
+          "forgetCode": {
+            "type": "string",
+            "description": "رمز إعادة تعيين كلمة المرور (5 أرقام)"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "description": "كلمة المرور الجديدة"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "format": "password",
+            "description": "تأكيد كلمة المرور الجديدة"
+          }
+        }
+      }
+    },
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT"
+        "bearerFormat": "JWT",
+        "description": "قم بإدخال رمز JWT في الصيغة: Bearer {token}"
       }
     }
   }

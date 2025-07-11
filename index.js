@@ -16,7 +16,12 @@ const port = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, "public")));
 
 // Connect to database
-await connectDB();
+try {
+  await connectDB();
+  console.log("DB connected successfully!");
+} catch (error) {
+  console.error("DB connection error:", error);
+}
 
 // Initialize routes and middleware
 bootstrap(app, express);
@@ -24,6 +29,25 @@ bootstrap(app, express);
 // Default route
 app.get("/", (req, res) => {
   res.redirect("/api-docs");
+});
+
+// Error handling for 404
+app.use((req, res, next) => {
+  res.status(404).json({ 
+    status: 404,
+    message: "Route not found",
+    path: req.originalUrl
+  });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({
+    status: err.status || 500,
+    message: err.message || "Internal server error",
+    path: req.originalUrl
+  });
 });
 
 app.listen(port, () => {

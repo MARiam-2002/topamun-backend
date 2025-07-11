@@ -17,19 +17,19 @@
     "routes": [
         {
             "src": "/api-docs",
-            "dest": "/api-docs"
+            "dest": "index.js"
         },
         {
             "src": "/api-docs/(.*)",
-            "dest": "/api-docs/$1"
+            "dest": "index.js"
         },
         {
             "src": "/auth/(.*)",
-            "dest": "/auth/$1"
+            "dest": "index.js"
         },
         {
             "src": "/(.*)",
-            "dest": "/index.js"
+            "dest": "index.js"
         }
     ]
 }
