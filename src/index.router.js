@@ -5,17 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Read and parse the swagger file in a way that's compatible with serverless environments
-const swaggerDoc = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "swagger-output.json"), "utf-8")
-);
+import swaggerDoc from "./swagger-output.json" with { type: "json" };
 
 dotenv.config();
 
