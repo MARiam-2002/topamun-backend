@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 // Read and parse the swagger file in a way that's compatible with serverless environments
 const swaggerDoc = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "../swagger-output.json"), "utf-8")
+  fs.readFileSync(path.join(__dirname, "swagger-output.json"), "utf-8")
 );
 
 dotenv.config();
