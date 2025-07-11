@@ -36,7 +36,8 @@ const options = {
       },
     ],
   },
-  apis: [path.join(process.cwd(), "src", "modules", "**", "*.router.js")],
+  // We point to the exact file path to avoid globbing issues in Vercel's build environment.
+  apis: [path.join(process.cwd(), "src", "modules", "auth", "auth.router.js")],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
