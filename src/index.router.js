@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const swaggerDoc = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "../swagger-output.json"), "utf-8")
+  fs.readFileSync(path.join(process.cwd(), "swagger-output.json"), "utf-8")
 );
 
 dotenv.config();
