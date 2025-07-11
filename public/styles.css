@@ -3,6 +3,8 @@
     --secondary-color: #1e3a8a;
     --light-bg: #f8f9fa;
     --border-color: #dee2e6;
+    --success-color: #10B981;
+    --error-color: #EF4444;
 }
 
 body {
@@ -102,6 +104,56 @@ code {
     width: 100%;
 }
 
+/* Interactive Elements */
+.try-btn {
+    padding: 0.25rem 1rem;
+    font-size: 0.9rem;
+}
+
+.try-section {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--light-bg);
+    border-radius: 8px;
+}
+
+.api-form {
+    max-width: 600px;
+}
+
+.response-box {
+    background: white;
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    margin-top: 1rem;
+    min-height: 100px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+}
+
+.response-box.success {
+    border-color: var(--success-color);
+    background-color: rgba(16, 185, 129, 0.1);
+}
+
+.response-box.error {
+    border-color: var(--error-color);
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.form-control {
+    margin-bottom: 1rem;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(45, 101, 180, 0.25);
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 0 1rem;
@@ -109,5 +161,9 @@ code {
     
     .endpoint-path {
         font-size: 0.9rem;
+    }
+
+    .try-section {
+        padding: 0.5rem;
     }
 } 
