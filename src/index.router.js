@@ -12,9 +12,15 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const swaggerDoc = JSON.parse(
-  fs.readFileSync(path.join(process.cwd(), "swagger-output.json"), "utf-8")
-);
+let swaggerDoc;
+try {
+  swaggerDoc = JSON.parse(
+    fs.readFileSync(path.join(process.cwd(), "swagger-output.json"), "utf-8")
+  );
+} catch (error) {
+  console.error("Error loading swagger-output.json:", error);
+  swaggerDoc = {};
+}
 
 dotenv.config();
 
@@ -33,7 +39,11 @@ const swaggerUiOptions = {
     .swagger-ui .scheme-container { background-color: #f8f9fa; border: 1px solid #dee2e6; }
   `,
   customSiteTitle: "Topamine API Documentation",
-  customfavIcon: "https://your-favicon-url/favicon.ico", // You can add your favicon link here
+  explorer: true,
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true
+  }
 };
 
 export const bootstrap = (app, express) => {
@@ -41,35 +51,15 @@ export const bootstrap = (app, express) => {
     app.use(morgan("common"));
   }
 
-  // const whiteList = ["http://127.0.0.1:5500",undefined];
-
-  // app.use((req, res, next) => {
-  //   if (req.originalUrl.includes("/auth/confirmEmail")) {
-  //     res.setHeader("Access-Control-Allow-Origin", "*");
-  //     res.setHeader("Access-Control-Allow-Methods", "GET");
-  //     return next();
-  //   }
-  //   if (!whiteList.includes(req.header("origin"))) {
-  //     return next(new Error("Blocked By CORS!"));
-  //   }
-  //   res.setHeader("Access-Control-Allow-Origin", "*");
-  //   res.setHeader("Access-Control-Allow-Headers", "*");
-  //   res.setHeader("Access-Control-Allow-Methods", "*");
-  //   res.setHeader("Access-Control-Allow-Private-Network", true);
-  //   return next();
-  // });
-  // app.use((req, res, next) => {
-  //   console.log(req.originalUrl);
-  //   if (req.originalUrl == "/order/webhook") {
-  //     next();
-  //   } else {
-  //     express.json()(req, res, next);
-  //   }
-  // });
   app.use(cors());
   app.use(express.json());
 
   // Serve Swagger documentation
+  app.get("/api-docs/swagger.json", (req, res) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerDoc);
+  });
+
   app.use(
     "/api-docs",
     swaggerUi.serve,
@@ -79,12 +69,8 @@ export const bootstrap = (app, express) => {
   app.use("/auth", authRouter);
 
   app.all("*", (req, res, next) => {
-    console.log(3);
     return next(new Error("not found page", { cause: 404 }));
   });
 
-  app.use((error, req, res, next) => {
-    return res.json({ message: error.message, stack: error.stack });
-  });
   app.use(globalErrorHandling);
 };
