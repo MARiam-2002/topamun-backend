@@ -9,7 +9,7 @@ import fs from "fs";
 import path from "path";
 
 // Read and parse the swagger file in a way that's compatible with serverless environments
-const swaggerFilePath = path.join(process.cwd(), "swagger-output.json");
+const swaggerFilePath = path.join(process.cwd(), "src", "swagger-output.json");
 const swaggerFile = fs.readFileSync(swaggerFilePath, "utf8");
 const swaggerDoc = JSON.parse(swaggerFile);
 

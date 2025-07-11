@@ -43,8 +43,8 @@ const options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 fs.writeFileSync(
-  "./swagger-output.json",
+  path.join(process.cwd(), "src", "swagger-output.json"),
   JSON.stringify(swaggerSpec, null, 2)
 );
 
-console.log("Swagger JSON file generated successfully."); 
+console.log("Swagger JSON file generated successfully in src folder."); 
