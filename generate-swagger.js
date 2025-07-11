@@ -36,15 +36,15 @@ const options = {
       },
     ],
   },
-  // We point to the exact file path to avoid globbing issues in Vercel's build environment.
-  apis: [path.join(process.cwd(), "src", "modules", "auth", "auth.router.js")],
+  apis: [path.join(process.cwd(), "src", "modules", "**", "*.router.js")],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
 
+// Write the swagger file to the src directory
 fs.writeFileSync(
   path.join(process.cwd(), "src", "swagger-output.json"),
   JSON.stringify(swaggerSpec, null, 2)
 );
 
-console.log("Swagger JSON file generated successfully in src folder."); 
+console.log("Swagger JSON file generated successfully in src directory."); 
