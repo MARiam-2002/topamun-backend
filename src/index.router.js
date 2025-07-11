@@ -8,10 +8,10 @@ import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import path from "path";
 
-const swaggerDoc = JSON.parse(
-  fs.readFileSync(path.join(process.cwd(), "swagger-output.json"), "utf-8")
-);
-dotenv.config();
+// Read and parse the swagger file
+const swaggerFilePath = path.join(process.cwd(), "swagger-output.json");
+const swaggerFile = fs.readFileSync(swaggerFilePath, "utf8");
+const swaggerDoc = JSON.parse(swaggerFile);
 
 const swaggerUiOptions = {
   customCss: `
