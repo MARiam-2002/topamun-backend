@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>توبامين API - التوثيق</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="#">توبامين API</a>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">توثيق واجهة برمجة التطبيقات</h1>
+                <div class="endpoints-container">
+                    <!-- Authentication -->
+                    <div class="endpoint-group mb-5">
+                        <h2 class="mb-4">المصادقة Authentication</h2>
+                        
+                        <!-- Register -->
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <span class="badge bg-primary">POST</span>
+                                <span class="endpoint-path">/auth/register</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <h4>تسجيل مستخدم جديد</h4>
+                                <h5>المعلومات المطلوبة:</h5>
+                                <ul class="params-list">
+                                    <li><code>firstName</code> - الاسم الأول</li>
+                                    <li><code>lastName</code> - اسم العائلة</li>
+                                    <li><code>email</code> - البريد الإلكتروني</li>
+                                    <li><code>password</code> - كلمة المرور</li>
+                                    <li><code>confirmPassword</code> - تأكيد كلمة المرور</li>
+                                    <li><code>phone</code> - رقم الهاتف</li>
+                                    <li><code>province</code> - المحافظة</li>
+                                    <li><code>role</code> - نوع المستخدم (Student/Teacher)</li>
+                                    <li><code>academicStage</code> - المرحلة الدراسية (للطلاب فقط)</li>
+                                    <li><code>subject</code> - المادة الدراسية (للمعلمين فقط)</li>
+                                    <li><code>certificate</code> - شهادة المعلم (للمعلمين فقط)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Login -->
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <span class="badge bg-primary">POST</span>
+                                <span class="endpoint-path">/auth/login</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <h4>تسجيل الدخول</h4>
+                                <h5>المعلومات المطلوبة:</h5>
+                                <ul class="params-list">
+                                    <li><code>email</code> - البريد الإلكتروني</li>
+                                    <li><code>password</code> - كلمة المرور</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Email -->
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <span class="badge bg-success">GET</span>
+                                <span class="endpoint-path">/auth/confirmEmail/:activationCode</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <h4>تفعيل الحساب</h4>
+                                <p>يتم استخدام هذا الرابط لتفعيل حساب الطالب من خلال البريد الإلكتروني</p>
+                            </div>
+                        </div>
+
+                        <!-- Forget Password -->
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <span class="badge bg-warning">PATCH</span>
+                                <span class="endpoint-path">/auth/forgetCode</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <h4>طلب رمز إعادة تعيين كلمة المرور</h4>
+                                <h5>المعلومات المطلوبة:</h5>
+                                <ul class="params-list">
+                                    <li><code>email</code> - البريد الإلكتروني</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Reset Password -->
+                        <div class="endpoint-card">
+                            <div class="endpoint-header">
+                                <span class="badge bg-warning">PATCH</span>
+                                <span class="endpoint-path">/auth/resetPassword</span>
+                            </div>
+                            <div class="endpoint-body">
+                                <h4>إعادة تعيين كلمة المرور</h4>
+                                <h5>المعلومات المطلوبة:</h5>
+                                <ul class="params-list">
+                                    <li><code>email</code> - البريد الإلكتروني</li>
+                                    <li><code>forgetCode</code> - رمز إعادة التعيين</li>
+                                    <li><code>password</code> - كلمة المرور الجديدة</li>
+                                    <li><code>confirmPassword</code> - تأكيد كلمة المرور الجديدة</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-5">
+        <div class="container">
+            <p class="text-center">جميع الحقوق محفوظة © 2024 توبامين</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

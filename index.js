@@ -28,16 +28,25 @@ bootstrap(app, express);
 
 // Default route
 app.get("/", (req, res) => {
-  res.redirect("/api-docs");
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// API Documentation route
+app.get("/api-docs", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // Error handling for 404
 app.use((req, res, next) => {
-  res.status(404).json({ 
-    status: 404,
-    message: "Route not found",
-    path: req.originalUrl
-  });
+  if (req.accepts("html")) {
+    res.status(404).sendFile(path.join(__dirname, "public", "index.html"));
+  } else {
+    res.status(404).json({ 
+      status: 404,
+      message: "Route not found",
+      path: req.originalUrl
+    });
+  }
 });
 
 // Global error handler
@@ -52,5 +61,5 @@ app.use((err, req, res, next) => {
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}!`);
-  console.log(`API Documentation available at http://localhost:${port}/api-docs`);
+  console.log(`API Documentation available at http://localhost:${port}`);
 });

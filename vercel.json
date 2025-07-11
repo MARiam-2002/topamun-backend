@@ -12,16 +12,16 @@
                     "public/**"
                 ]
             }
+        },
+        {
+            "src": "public/**",
+            "use": "@vercel/static"
         }
     ],
     "routes": [
         {
-            "src": "/api-docs",
-            "dest": "index.js"
-        },
-        {
-            "src": "/api-docs/(.*)",
-            "dest": "index.js"
+            "src": "/styles.css",
+            "dest": "/public/styles.css"
         },
         {
             "src": "/auth/(.*)",
