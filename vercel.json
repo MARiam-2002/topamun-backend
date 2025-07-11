@@ -2,24 +2,34 @@
     "version": 2,
     "builds": [
         {
-            "src": "./index.js",
+            "src": "index.js",
             "use": "@vercel/node",
             "config": {
                 "includeFiles": [
                     "swagger-output.json",
-                    "src/**"
+                    "src/**",
+                    "DB/**",
+                    "public/**"
                 ]
             }
         }
     ],
     "routes": [
         {
+            "src": "/api-docs",
+            "dest": "/api-docs"
+        },
+        {
             "src": "/api-docs/(.*)",
             "dest": "/api-docs/$1"
         },
         {
+            "src": "/auth/(.*)",
+            "dest": "/auth/$1"
+        },
+        {
             "src": "/(.*)",
-            "dest": "/"
+            "dest": "/index.js"
         }
     ]
 }
