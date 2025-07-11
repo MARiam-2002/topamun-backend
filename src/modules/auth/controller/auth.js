@@ -2,7 +2,7 @@ import userModel from "../../../../DB/models/user.model.js";
 import tokenModel from "../../../../DB/models/token.model.js";
 import jwt from "jsonwebtoken";
 import randomstring from "randomstring";
-import cloudinary from "../../../utils/cloud.js";
+import { uploadToCloudinary } from "../../../utils/cloud.js";
 import { sendEmail } from "../../../utils/sendEmails.js";
 import { resetPassword as resetPasswordTemplate, signupTemp } from "../../../utils/generateHtml.js";
 import { 
@@ -75,7 +75,7 @@ const createAuthToken = async (user, req) => {
 const uploadInstructorDocument = async (file, user) => {
   try {
     const folderPath = `${APP_CONFIG.UPLOAD.CLOUDINARY_FOLDER}/documents/${user.firstName}_${user.lastName}`;
-    const result = await cloudinary.uploader.upload(file.path, {
+    const result = await uploadToCloudinary(file.path, {
       folder: folderPath,
       resource_type: 'auto',
       format: 'pdf'
@@ -86,6 +86,7 @@ const uploadInstructorDocument = async (file, user) => {
       public_id: result.public_id
     };
   } catch (error) {
+    console.error('Failed to upload instructor document:', error.message);
     throw new FileUploadError(ERROR_MESSAGES.UPLOAD_FAILED);
   }
 };
@@ -110,9 +111,10 @@ const sendConfirmationEmail = async (user, req) => {
     });
 
     if (!emailSent) {
-      throw new AppError(ERROR_MESSAGES.INTERNAL_ERROR, HTTP_STATUS.INTERNAL_SERVER_ERROR);
+      throw new Error('Failed to send confirmation email');
     }
   } catch (error) {
+    console.error('Failed to send confirmation email:', error.message);
     throw new AppError(ERROR_MESSAGES.INTERNAL_ERROR, HTTP_STATUS.INTERNAL_SERVER_ERROR);
   }
 };
@@ -166,7 +168,13 @@ export const signUp = catchAsync(async (req, res, next) => {
   }
 
   // Send confirmation email
-  await sendConfirmationEmail(user, req);
+  try {
+    await sendConfirmationEmail(user, req);
+  } catch (emailError) {
+    console.error("Failed to send confirmation email:", emailError);
+    // We don't block registration if email fails.
+    // The user can request a new confirmation email later.
+  }
 
   // Send success response
   sendSuccess(res, null, SUCCESS_MESSAGES.REGISTRATION_SUCCESS, HTTP_STATUS.CREATED);

@@ -1,17 +1,41 @@
+// Environment Variables Validation
+const requiredEnvVars = [
+  'CONNECTION_URL',
+  'TOKEN_KEY',
+  'JWT_SECRET_CONFIRMATION',
+];
+
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:');
+  missingEnvVars.forEach(varName => {
+    console.error(`   - ${varName}`);
+  });
+  
+  // In development, show warning but continue
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn('⚠️  Running in development mode with missing variables');
+  } else {
+    console.error('💥 Cannot start in production without required environment variables');
+    process.exit(1);
+  }
+}
+
 // Application Constants
 export const APP_CONFIG = {
   // JWT Configuration
   JWT: {
-    SECRET: process.env.TOKEN_KEY ,
-    CONFIRMATION_SECRET: process.env.JWT_SECRET_CONFIRMATION ,
+    SECRET: process.env.TOKEN_KEY || 'fallback-secret-key-for-development',
+    CONFIRMATION_SECRET: process.env.JWT_SECRET_CONFIRMATION || 'fallback-confirmation-secret',
     EXPIRES_IN: '7d',
     CONFIRMATION_EXPIRES_IN: '1h',
-    BEARER_PREFIX: process.env.BEARER_KEY ,
+    BEARER_PREFIX: process.env.BEARER_KEY || 'Bearer ',
   },
 
   // Database Configuration
   DATABASE: {
-    CONNECTION_URL: process.env.CONNECTION_URL,
+    CONNECTION_URL: process.env.CONNECTION_URL || 'mongodb://localhost:27017/topamun',
     CONNECTION_TIMEOUT: parseInt(process.env.MONGODB_CONNECTION_TIMEOUT) || 30000,
     SOCKET_TIMEOUT: parseInt(process.env.MONGODB_SOCKET_TIMEOUT) || 60000,
     SERVER_SELECTION_TIMEOUT: parseInt(process.env.MONGODB_SERVER_SELECTION_TIMEOUT) || 30000,
@@ -32,7 +56,9 @@ export const APP_CONFIG = {
     MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
     ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/jpg', 'image/png'],
     ALLOWED_DOCUMENT_TYPES: ['application/pdf'],
+    ALLOWED_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'],
     CLOUDINARY_FOLDER: 'topamun',
+    TEMP_FOLDER: 'uploads/temp',
   },
 
   // Email Configuration
