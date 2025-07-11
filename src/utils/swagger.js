@@ -1,9 +1,5 @@
 import swaggerJsdoc from "swagger-jsdoc";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const options = {
   definition: {
@@ -20,11 +16,11 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3000", // Update with your development server URL
+        url: "http://localhost:3000",
         description: "Development Server",
       },
       {
-        url: "https://your-production-url.com", // Update with your production URL
+        url: "https://topamun-backend.vercel.app/",
         description: "Production Server",
       },
     ],
@@ -43,7 +39,7 @@ const options = {
       },
     ],
   },
-  apis: [path.join(__dirname, "../modules/**/*.router.js")], // Absolute path to the API docs
+  apis: [path.join(process.cwd(), "src", "modules", "**", "*.router.js")],
 };
 
 export const swaggerSpec = swaggerJsdoc(options); 
