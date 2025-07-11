@@ -5,7 +5,7 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
-import swaggerDoc from "../../swagger-output.json" assert { type: "json" };
+import swaggerDoc from "../swagger-output.json" with { type: "json" };
 dotenv.config();
 
 const swaggerUiOptions = {
