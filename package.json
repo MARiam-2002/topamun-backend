@@ -5,9 +5,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js",
+    "start": "cross-env NODE_PATH=./src node index.js",
+    "build": "node generate-swagger.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "npm run build:swagger && nodemon index.js",
+    "dev": "cross-env NODE_PATH=./src nodemon index.js",
     "build:swagger": "node generate-swagger.js",
     "vercel-build": "npm run build:swagger"
   },
