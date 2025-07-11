@@ -5,7 +5,12 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
-import swaggerDoc from "../swagger-output.json" with { type: "json" };
+import fs from "fs";
+import path from "path";
+
+const swaggerDoc = JSON.parse(
+  fs.readFileSync(path.join(process.cwd(), "swagger-output.json"), "utf-8")
+);
 dotenv.config();
 
 const swaggerUiOptions = {
