@@ -16,11 +16,11 @@ const options = {
     },
     servers: [
       {
-        url: 'https://topamun-backend.vercel.app/api/v1',
+        url: 'https://topamun-backend.vercel.app',
         description: 'خادم الإنتاج'
       },
       {
-        url: 'http://localhost:3000/api/v1',
+        url: 'http://localhost:3000',
         description: 'خادم التطوير المحلي'
       }
     ],
