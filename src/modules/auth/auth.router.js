@@ -1,6 +1,5 @@
 import { Router } from "express";
 import multer from "multer";
-import fs from "fs";
 import * as authController from "./controller/auth.js";
 import { 
   signUpSchema, 
@@ -24,17 +23,10 @@ import { APP_CONFIG, SYSTEM_ROLES } from "../../config/constants.js";
 
 const router = Router();
 
-// Ensure the temporary upload directory exists
-const tempDir = APP_CONFIG.UPLOAD.TEMP_FOLDER;
-if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir, { recursive: true });
-}
-
 // Configure multer for file uploads
+// By omitting the `destination`, multer will use the OS's default temp directory,
+// which is the correct approach for serverless environments like Vercel (/tmp).
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, tempDir);
-  },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
