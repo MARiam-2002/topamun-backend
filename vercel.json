@@ -6,7 +6,7 @@
             "use": "@vercel/node",
             "config": {
                 "includeFiles": [
-                    "src/swagger-output.json",
+                    "swagger-output.json",
                     "src/**"
                 ]
             }

@@ -20,7 +20,7 @@ const doc = {
   },
 };
 
-const outputFile = "./src/swagger-output.json";
+const outputFile = "./swagger-output.json"; // Output in the root
 const endpointsFiles = ["./src/index.router.js"]; // Main router file that includes all other routers
 
 swaggerAutogen({ openapi: "3.0.0" })(outputFile, endpointsFiles, doc); 
