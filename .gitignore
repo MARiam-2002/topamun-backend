@@ -59,5 +59,9 @@ out
 .vercel/
 
 # --- Misc ---
-# Swagger/API Docs
+# Swagger/API Docs (generated)
 swagger-spec.json
+
+# --- Keep these files ---
+!.env.example
+!VERCEL_SETUP.md

@@ -22,6 +22,19 @@
     "MONGODB_SOCKET_TIMEOUT": "60000",
     "MONGODB_SERVER_SELECTION_TIMEOUT": "30000",
     "MONGODB_MAX_RETRY_ATTEMPTS": "5",
-    "MONGODB_BASE_RETRY_DELAY": "1000"
+    "MONGODB_BASE_RETRY_DELAY": "1000",
+    "CONNECTION_URL": "mongodb+srv://topamun:topamun123@cluster0.fya37pm.mongodb.net/Topamin?retryWrites=true&w=majority",
+    "TOKEN_KEY": "your-super-secret-jwt-token-key-for-topamun-platform-2024-temp",
+    "JWT_SECRET_CONFIRMATION": "your-super-secret-confirmation-token-key-for-topamun-platform-2024-temp",
+    "BEARER_KEY": "Bearer ",
+    "SALT_ROUND": "12",
+    "EMAIL": "dummy@example.com",
+    "EMAIL_PASSWORD": "dummy-password",
+    "EMAIL_FROM": "Topamun Platform <dummy@example.com>",
+    "CLOUD_NAME": "dummy-cloud",
+    "API_KEY": "dummy-key",
+    "API_SECRET": "dummy-secret",
+    "FRONTEND_URL": "https://topamun.com",
+    "API_BASE_URL": "https://topamun-backend.vercel.app/api/v1"
   }
 }

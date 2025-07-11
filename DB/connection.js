@@ -60,18 +60,25 @@ export const connectDB = async () => {
     
     console.error(`❌ MongoDB connection failed (attempt ${connectionAttempts}/${maxRetryAttempts}):`, error.message);
     
-    // Retry connection if attempts are remaining
-    if (connectionAttempts < maxRetryAttempts) {
-      const delay = retryDelay * Math.pow(2, connectionAttempts - 1); // Exponential backoff
-      console.log(`🔄 Retrying connection in ${delay}ms...`);
-      
-      setTimeout(() => {
-        connectDB();
-      }, delay);
-    } else {
-      console.error('💥 Max connection attempts reached. Exiting...');
-      process.exit(1);
+    // In development, continue without database after max attempts
+    if (connectionAttempts >= maxRetryAttempts) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('⚠️  Running in development mode without database connection');
+        console.warn('⚠️  Some features may not work properly');
+        return;
+      } else {
+        console.error('💥 Max connection attempts reached. Exiting...');
+        process.exit(1);
+      }
     }
+    
+    // Retry connection if attempts are remaining
+    const delay = retryDelay * Math.pow(2, connectionAttempts - 1); // Exponential backoff
+    console.log(`🔄 Retrying connection in ${delay}ms...`);
+    
+    setTimeout(() => {
+      connectDB();
+    }, delay);
   }
 };
 
@@ -167,7 +174,12 @@ export const initializeDatabase = async () => {
 export const healthCheck = async () => {
   try {
     if (!isConnected) {
-      throw new Error('Database not connected');
+      return {
+        status: 'disconnected',
+        message: 'Database connection not available',
+        timestamp: new Date().toISOString(),
+        connection: checkConnection()
+      };
     }
     
     // Ping the database
