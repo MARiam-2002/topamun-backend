@@ -26,13 +26,8 @@ try {
 // Initialize routes and middleware
 bootstrap(app, express);
 
-// Default route
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-// API Documentation route
-app.get("/api-docs", (req, res) => {
+// Documentation routes
+app.get(["/", "/api-docs", "/api-docs/*"], (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
@@ -52,11 +47,15 @@ app.use((req, res, next) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err);
-  res.status(err.status || 500).json({
-    status: err.status || 500,
-    message: err.message || "Internal server error",
-    path: req.originalUrl
-  });
+  if (req.accepts("html")) {
+    res.status(err.status || 500).sendFile(path.join(__dirname, "public", "index.html"));
+  } else {
+    res.status(err.status || 500).json({
+      status: err.status || 500,
+      message: err.message || "Internal server error",
+      path: req.originalUrl
+    });
+  }
 });
 
 app.listen(port, () => {
