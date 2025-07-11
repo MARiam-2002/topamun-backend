@@ -39,7 +39,9 @@ const options = {
       },
     ],
   },
-  apis: [path.join(process.cwd(), "src", "modules", "**", "*.router.js")],
+  // To debug the Vercel deployment issue, we are pointing to the exact file path
+  // instead of using a glob pattern. If this works, the issue is with globbing on Vercel.
+  apis: [path.join(process.cwd(), "src", "modules", "auth", "auth.router.js")],
 };
 
 export const swaggerSpec = swaggerJsdoc(options); 
