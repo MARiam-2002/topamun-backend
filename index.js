@@ -593,6 +593,15 @@ app.get('/health', async (req, res) => {
 // Setup API routes
 bootstrap(app, express);
 
+// Handle favicon requests
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
+
+app.get('/favicon.png', (req, res) => {
+  res.status(204).end();
+});
+
 // Handle 404 errors for unmatched routes
 app.all("*", handleNotFound);
 
