@@ -66,6 +66,7 @@ export const register = asyncHandler(async (req, res, next) => {
       ? res.status(200).json({
           success: true,
           message: "Registration successful, please wait for admin approval.",
+          data: null
         })
       : next(new Error("something went wrong!", { cause: 400 }));
   }
@@ -93,9 +94,11 @@ export const register = asyncHandler(async (req, res, next) => {
   });
 
   return isSent
-    ? res
-        .status(200)
-        .json({ success: true, message: "Please review Your email!" })
+    ? res.status(200).json({ 
+        success: true, 
+        message: "Please review Your email!",
+        data: null
+      })
     : next(new Error("something went wrong!", { cause: 400 }));
 });
 
@@ -108,9 +111,11 @@ export const activationAccount = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new Error("User Not Found!", { cause: 404 }));
   }
-  return res
-    .status(200)
-    .send("Congratulation, Your Account is now activated, try to login");
+  return res.status(200).json({
+    success: true,
+    message: "Account activated successfully, try to login",
+    data: null
+  });
 });
 
 export const login = asyncHandler(async (req, res, next) => {
@@ -154,10 +159,22 @@ export const login = asyncHandler(async (req, res, next) => {
   user.status = "online";
   await user.save();
 
-  return res.status(200).json({ success: true, result: { token } });
+  return res.status(200).json({ 
+    success: true, 
+    message: "Logged in successfully",
+    data: {
+      token,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage?.url
+      }
+    }
+  });
 });
-
-//send forget Code
 
 export const sendForgetCode = asyncHandler(async (req, res, next) => {
   const user = await userModel.findOne({ email: req.body.email });
@@ -179,7 +196,11 @@ export const sendForgetCode = asyncHandler(async (req, res, next) => {
     subject: "إعادة تعيين كلمة المرور",
     html: passwordResetEmail(user.firstName, code),
   }))
-    ? res.status(200).json({ success: true, message: "check you email!" })
+    ? res.status(200).json({ 
+        success: true, 
+        message: "Reset code sent to your email",
+        data: null
+      })
     : next(new Error("Something went wrong!", { cause: 400 }));
 });
 
@@ -197,10 +218,12 @@ export const resetPasswordByCode = asyncHandler(async (req, res, next) => {
   user.forgetCode = undefined; //Remove the forget code
   await user.save();
 
-
   //invalidate tokens
   const tokens = await tokenModel.updateMany({ user: user._id }, {isValid: false});
 
-
-  return res.status(200).json({ success: true, message: "Password updated successfully, Please try to login!" });
+  return res.status(200).json({ 
+    success: true, 
+    message: "Password updated successfully, Please try to login!",
+    data: null
+  });
 });
