@@ -1,206 +1,152 @@
-import userModel from "../../../../DB/models/user.model.js";
-import tokenModel from "../../../../DB/models/token.model.js";
-import jwt from "jsonwebtoken";
-import randomstring from "randomstring";
-import { uploadToCloudinary } from "../../../utils/cloud.js";
-import { sendEmail } from "../../../utils/sendEmails.js";
-import { resetPassword as resetPasswordTemplate, signupTemp } from "../../../utils/generateHtml.js";
-import { 
-  APP_CONFIG, 
-  SYSTEM_ROLES, 
-  USER_STATUS, 
-  SUCCESS_MESSAGES, 
-  ERROR_MESSAGES,
-  HTTP_STATUS
-} from "../../../config/constants.js";
-import { 
-  catchAsync,
-  AppError,
-  AuthenticationError,
-  ConflictError,
-  NotFoundError,
-  ValidationError,
-  FileUploadError
-} from "../../../utils/error.class.js";
-import { sendSuccess } from "../../../utils/error-handling.js";
+// import userModel from "../../../../DB/models/user.model.js";
+// import { asyncHandler } from "../../../utils/asyncHandler.js";
+// import bcryptjs from "bcryptjs";
+// import crypto from "crypto";
+// import jwt from "jsonwebtoken";
+// import { sendEmail } from "../../../utils/sendEmails.js";
+// import { resetPassword, signupTemp } from "../../../utils/generateHtml.js";
+// import tokenModel from "../../../../DB/models/token.model.js";
+// import randomstring from "randomstring";
+// import cartModel from "../../../../DB/models/cart.model.js";
 
-/**
- * Helper function to generate JWT token
- */
-const generateJWTToken = (payload, secret = APP_CONFIG.JWT.SECRET, expiresIn = APP_CONFIG.JWT.EXPIRES_IN) => {
-  return jwt.sign(payload, secret, { expiresIn });
-};
+// export const register = asyncHandler(async (req, res, next) => {
+//   const { userName, email, password ,role} = req.body;
+//   const isUser = await userModel.findOne({ email });
+//   if (isUser) {
+//     return next(new Error("email already registered !", { cause: 409 }));
+//   }
 
-/**
- * Helper function to create and save authentication token
- */
-const createAuthToken = async (user, req) => {
-  const tokenPayload = {
-    id: user._id,
-    email: user.email,
-    role: user.role
-  };
+//   const hashPassword = bcryptjs.hashSync(
+//     password,
+//     Number(process.env.SALT_ROUND)
+//   );
+//   const activationCode = crypto.randomBytes(64).toString("hex");
 
-  const token = generateJWTToken(tokenPayload);
-  
-  // Extract device and location information
-  const userAgent = req.headers['user-agent'] || 'Unknown';
-  const ipAddress = req.ip || req.connection.remoteAddress || 'Unknown';
-  
-  // Create token record
-  await tokenModel.create({
-    token,
-    user: user._id,
-    agent: userAgent,
-    ipAddress,
-    tokenType: 'access',
-    deviceInfo: userAgent
-  });
+//   const user = await userModel.create({
+//     userName,
+//     email,
+//     password: hashPassword,
+//     role,
+//     activationCode,
+//   });
 
-  // Update user login status
-  user.isLoggedIn = true;
-  user.lastLogin = new Date();
-  user.lastActivity = new Date();
-  
-  // Reset login attempts on successful login
-  await user.resetLoginAttempts();
-  await user.save();
+//   const link = `https://backend-kappa-beige.vercel.app/auth/confirmEmail/${activationCode}`;
 
-  return token;
-};
+//   const isSent = await sendEmail({
+//     to: email,
+//     subject: "Activate Account",
+//     html: signupTemp(link),
+//   });
+//   return isSent
+//     ? res
+//         .status(200)
+//         .json({ success: true, message: "Please review Your email!" })
+//     : next(new Error("something went wrong!", { cause: 400 }));
+// });
 
-/**
- * Helper function to upload instructor document
- */
-const uploadInstructorDocument = async (file, user) => {
-  try {
-    const folderPath = `${APP_CONFIG.UPLOAD.CLOUDINARY_FOLDER}/documents/${user.firstName}_${user.lastName}`;
-    const result = await uploadToCloudinary(file, {
-      folder: folderPath,
-      resource_type: 'auto',
-    });
-    
-    return {
-      secure_url: result.secure_url,
-      public_id: result.public_id
-    };
-  } catch (error) {
-    console.error('Failed to upload instructor document:', error.message);
-    throw new FileUploadError(ERROR_MESSAGES.UPLOAD_FAILED);
-  }
-};
+// export const activationAccount = asyncHandler(async (req, res, next) => {
+//   const user = await userModel.findOneAndUpdate(
+//     { activationCode: req.params.activationCode },
+//     { isConfirmed: true, $unset: { activationCode: 1 } }
+//   );
 
-/**
- * Helper function to send confirmation email
- */
-const sendConfirmationEmail = async (user, req) => {
-  try {
-    const confirmationToken = generateJWTToken(
-      { id: user._id }, 
-      APP_CONFIG.JWT.CONFIRMATION_SECRET, 
-      APP_CONFIG.JWT.CONFIRMATION_EXPIRES_IN
-    );
-    
-    const confirmationLink = `${req.protocol}://${req.headers.host}/api/v1/auth/confirm-email/${confirmationToken}`;
-    
-    const emailSent = await sendEmail({
-      to: user.email,
-      subject: APP_CONFIG.EMAIL.CONFIRMATION_SUBJECT,
-      html: signupTemp(confirmationLink),
-    });
+//   if (!user) {
+//     return next(new Error("User Not Found!", { cause: 404 }));
+//   }
+//   if (user.role == "user") {
+//     await cartModel.create({ user: user._id });
+//   }
+//   return res
+//     .status(200)
+//     .send("Congratulation, Your Account is now activated, try to login");
+// });
 
-    if (!emailSent) {
-      throw new Error('Failed to send confirmation email');
-    }
-  } catch (error) {
-    console.error('Failed to send confirmation email:', error.message);
-    throw new AppError(ERROR_MESSAGES.INTERNAL_ERROR, HTTP_STATUS.INTERNAL_SERVER_ERROR);
-  }
-};
+// export const login = asyncHandler(async (req, res, next) => {
+//   const { email, password } = req.body;
+//   const user = await userModel.findOne({ email });
 
-/**
- * User Registration
- */
-export const signUp = catchAsync(async (req, res, next) => {
-  const { firstName, lastName, email, password, role, phone, governorate, gradeLevel, subject } = req.body;
+//   if (!user) {
+//     return next(new Error("Invalid-Email", { cause: 400 }));
+//   }
 
-  // Check if user already exists
-  const existingUser = await userModel.findOne({ email });
-  if (existingUser) {
-    return next(new ConflictError(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS));
-  }
+//   if (!user.isConfirmed) {
+//     return next(new Error("Un activated Account", { cause: 400 }));
+//   }
 
-  // Validate instructor document requirement
-  if (role === SYSTEM_ROLES.INSTRUCTOR && !req.file) {
-    return next(new ValidationError(ERROR_MESSAGES.FILE_REQUIRED));
-  }
+//   const match = bcryptjs.compareSync(password, user.password);
 
-  // Prepare user data
-  const userData = {
-    firstName,
-    lastName,
-    email,
-    password,
-    role,
-    phone,
-    governorate,
-  };
+//   if (!match) {
+//     return next(new Error("Invalid-Password", { cause: 400 }));
+//   }
 
-  // Add role-specific fields
-  if (role === SYSTEM_ROLES.USER) {
-    userData.gradeLevel = gradeLevel;
-  }
+//   const token = jwt.sign(
+//     { id: user._id, email: user.email },
+//     process.env.TOKEN_KEY,
+//     { expiresIn: "2d" }
+//   );
 
-  if (role === SYSTEM_ROLES.INSTRUCTOR) {
-    userData.subject = subject;
-    userData.status = USER_STATUS.PENDING;
-  }
+//   await tokenModel.create({
+//     token,
+//     user: user._id,
+//     agent: req.headers["user-agent"],
+//   });
 
-  // Create user
-  const user = await userModel.create(userData);
+//   user.status = "online";
+//   await user.save();
 
-  // Upload instructor document if provided
-  if (role === SYSTEM_ROLES.INSTRUCTOR && req.file) {
-    const document = await uploadInstructorDocument(req.file, user);
-    user.document = document;
-    await user.save();
-  }
+//   return res.status(200).json({ success: true, result: token });
+// });
 
-  // Send confirmation email
-  try {
-    await sendConfirmationEmail(user, req);
-  } catch (emailError) {
-    console.error("Failed to send confirmation email:", emailError);
-    // We don't block registration if email fails.
-    // The user can request a new confirmation email later.
-  }
+// //send forget Code
 
-  // Send success response
-  sendSuccess(res, null, SUCCESS_MESSAGES.REGISTRATION_SUCCESS, HTTP_STATUS.CREATED);
-});
+// export const sendForgetCode = asyncHandler(async (req, res, next) => {
+//   const user = await userModel.findOne({ email: req.body.email });
 
-/**
- * Email Confirmation
- */
-export const confirmEmail = catchAsync(async (req, res, next) => {
-  const { token } = req.params;
+//   if (!user) {
+//     return next(new Error("Invalid email!", { cause: 400 }));
+//   }
 
-  try {
-    const decoded = jwt.verify(token, APP_CONFIG.JWT.CONFIRMATION_SECRET);
-    
-    if (!decoded?.id) {
-      return next(new AuthenticationError(ERROR_MESSAGES.TOKEN_INVALID));
-    }
+//   const code = randomstring.generate({
+//     length: 5,
+//     charset: "numeric",
+//   });
 
-    const user = await userModel.findByIdAndUpdate(
-      decoded.id,
-      { isConfirmed: true },
-      { new: true }
-    );
+//   user.forgetCode = code;
+//   await user.save();
 
-    if (!user) {
-      return next(new NotFoundError(ERROR_MESSAGES.USER_NOT_FOUND));
-    }
+//   return (await sendEmail({
+//     to: user.email,
+//     subject: "Reset Password",
+//     html: resetPassword(code),
+//   }))
+//     ? res.status(200).json({ success: true, message: "check you email!" })
+//     : next(new Error("Something went wrong!", { cause: 400 }));
+// });
 
-    // Send HTML response for email confirmation
-    res.status(HTTP_STATUS.OK).send(`
+// export const resetPasswordByCode = asyncHandler(async (req, res, next) => {
+//   const newPassword = bcryptjs.hashSync(
+//     req.body.password,
+//     +process.env.SALT_ROUND
+//   );
+//   const checkUser = await userModel.findOne({ email: req.body.email });
+//   if (!checkUser) {
+//     return next(new Error("Invalid email!", { cause: 400 }));
+//   }
+//   if (checkUser.forgetCode !== req.body.forgetCode) {
+//     return next(new Error("Invalid code!", { status: 400 }));
+//   }
+//   const user = await userModel.findOneAndUpdate(
+//     { email: req.body.email },
+//     { password: newPassword, $unset: { forgetCode: 1 } }
+//   );
+
+//   //invalidate tokens
+//   const tokens = await tokenModel.find({ user: user._id });
+
+//   tokens.forEach(async (token) => {
+//     token.isValid = false;
+//     await token.save();
+//   });
+
+//   return res.status(200).json({ success: true, message: "Try to login!" });
+// });
