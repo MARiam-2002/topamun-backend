@@ -23,15 +23,10 @@ import { APP_CONFIG, SYSTEM_ROLES } from "../../config/constants.js";
 
 const router = Router();
 
-// Configure multer for file uploads
-// By omitting the `destination`, multer will use the OS's default temp directory,
-// which is the correct approach for serverless environments like Vercel (/tmp).
-const storage = multer.diskStorage({
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + '.' + file.originalname.split('.').pop());
-  }
-});
+// Configure multer to use memory storage
+// This is the standard and correct way for serverless environments like Vercel,
+// as it avoids any filesystem writes.
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = APP_CONFIG.UPLOAD.ALLOWED_TYPES;

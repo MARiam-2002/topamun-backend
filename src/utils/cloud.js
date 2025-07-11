@@ -7,7 +7,7 @@ const hasCloudinaryConfig = process.env.CLOUD_NAME && process.env.API_KEY && pro
 
 if (!hasCloudinaryConfig) {
   console.warn('⚠️  Cloudinary configuration missing. File uploads will be disabled.');
-  console.warn('   Required variables: CLOUD_NAME, API_KEY, API_SECRET');
+  console.warn('   - Required variables: CLOUD_NAME, API_KEY, API_SECRET');
 }
 
 cloudinary.config({
@@ -17,15 +17,23 @@ cloudinary.config({
 });
 
 // Export a wrapper that checks configuration before uploading
-export const uploadToCloudinary = async (filePath, options = {}) => {
+// It now handles file buffers from memory storage.
+export const uploadToCloudinary = async (file, options = {}) => {
   if (!hasCloudinaryConfig) {
     throw new Error('Cloudinary configuration is missing. Cannot upload files.');
   }
   
   try {
-    const result = await cloudinary.uploader.upload(filePath, options);
-    console.log('✅ File uploaded to Cloudinary:', result.public_id);
-    return result;
+    // Use a promise to handle the stream-based upload from a buffer
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
+        if (error) {
+          return reject(error);
+        }
+        resolve(result);
+      });
+      uploadStream.end(file.buffer);
+    });
   } catch (error) {
     console.error('❌ Cloudinary upload failed:', error.message);
     throw error;
